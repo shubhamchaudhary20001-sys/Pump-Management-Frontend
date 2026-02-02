@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './Auth.css';
 
@@ -17,18 +17,18 @@ const Register = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchOrganisations();
-  }, []);
-
-  const fetchOrganisations = async () => {
+  const fetchOrganisations = useCallback(async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/organisations`);
       setOrganisations(response.data);
     } catch (error) {
       console.error('Error fetching organisations:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchOrganisations();
+  }, [fetchOrganisations]);
 
   const handleChange = (e) => {
     setFormData({

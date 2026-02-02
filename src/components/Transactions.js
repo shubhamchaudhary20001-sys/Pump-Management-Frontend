@@ -59,7 +59,7 @@ const Transactions = ({ organizationFilter }) => {
     };
   });
 
-  const handleExportExcel = async () => {
+  const handleExportExcel = useCallback(async () => {
     try {
       setLoading(true);
       const user = JSON.parse(localStorage.getItem('user'));
@@ -113,7 +113,7 @@ const Transactions = ({ organizationFilter }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationFilter, filters, activeTab]);
 
   const handleSort = (key) => {
     let direction = 'asc';

@@ -121,7 +121,7 @@ const DailyCollection = ({ organizationFilter }) => {
         setSortConfig({ key, direction });
     };
 
-    const handleExport = async () => {
+    const handleExport = useCallback(async () => {
         try {
             const user = JSON.parse(localStorage.getItem('user'));
             const params = new URLSearchParams();
@@ -152,7 +152,7 @@ const DailyCollection = ({ organizationFilter }) => {
             console.error('Error exporting collections:', error);
             setMessage({ text: 'Error exporting collections', type: 'error' });
         }
-    };
+    }, [appliedFilters, organizationFilter]);
 
     const fetchTestingVolume = useCallback(async (machineId, date) => {
         if (!machineId || !date) {

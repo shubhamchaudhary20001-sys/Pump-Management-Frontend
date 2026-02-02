@@ -205,9 +205,7 @@ const Dashboard = ({ organizationFilter }) => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     setCurrentUser(user);
-    if (!user) {
-      setLoading(false);
-    }
+    setLoading(false);
   }, []);
 
   useEffect(() => {

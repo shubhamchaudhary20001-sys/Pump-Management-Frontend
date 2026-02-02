@@ -65,8 +65,11 @@ const SalesReport = ({ organizationFilter }) => {
 
     useEffect(() => {
         fetchDropdownData();
+    }, [fetchDropdownData]);
+
+    useEffect(() => {
         fetchReport();
-    }, [fetchReport, fetchDropdownData]);
+    }, [fetchReport]);
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;

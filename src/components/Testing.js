@@ -178,7 +178,7 @@ const Testing = ({ organizationFilter }) => {
         }
     };
 
-    const handleExport = async () => {
+    const handleExport = useCallback(async () => {
         try {
             const user = JSON.parse(localStorage.getItem('user'));
             const params = new URLSearchParams();
@@ -209,7 +209,7 @@ const Testing = ({ organizationFilter }) => {
             console.error('Error exporting testing records:', error);
             setMessage({ text: 'Error exporting data', type: 'error' });
         }
-    };
+    }, [organizationFilter, filters]);
 
     return (
         <div className="testing-container">

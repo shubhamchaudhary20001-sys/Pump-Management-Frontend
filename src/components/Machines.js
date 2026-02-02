@@ -122,7 +122,7 @@ const Machines = ({ organizationFilter }) => {
         setSortConfig({ key, direction });
     };
 
-    const handleExport = async () => {
+    const handleExport = useCallback(async () => {
         try {
             const user = JSON.parse(localStorage.getItem('user'));
             const params = new URLSearchParams();
@@ -142,7 +142,7 @@ const Machines = ({ organizationFilter }) => {
         } catch (error) {
             console.error('Error exporting machines:', error);
         }
-    };
+    }, [organizationFilter]);
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));

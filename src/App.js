@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
 import Navbar from './components/Navbar';
@@ -29,11 +29,7 @@ function App() {
 
   const [selectedOrganization, setSelectedOrganization] = useState(localStorage.getItem('selectedOrganization') || '');
 
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = useCallback(async () => {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
 
@@ -55,7 +51,11 @@ function App() {
       }
     }
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   const handleLogin = (user) => {
     setCurrentUser(user);
