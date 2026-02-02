@@ -1,0 +1,236 @@
+.navbar {
+  background: #0f172a;
+  /* Slate 900 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.navbar.collapsed {
+  width: 80px;
+}
+
+.navbar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32px 24px;
+  min-height: 100px;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-brand h2 {
+  color: white;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-icon {
+  font-size: 24px;
+  color: #818cf8;
+}
+
+.toggle-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.navbar-nav {
+  list-style: none;
+  margin: 0;
+  padding: 0 16px;
+  flex: 1;
+}
+
+.navbar-filter {
+  padding: 16px 24px;
+  margin-bottom: 24px;
+}
+
+.navbar-filter select {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  /* color: #cbd5e1; */
+  color: #90a7c4;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.navbar-filter select:focus {
+  border-color: #4f46e5;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #94a3b8;
+  text-decoration: none;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+
+.nav-link:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link.active {
+  color: white;
+  background: #4f46e5;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.nav-icon {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.nav-link-transactions .nav-icon i {
+  color: #fbbf24;
+}
+
+.nav-link-organizations .nav-icon i {
+  color: #38bdf8;
+}
+
+.nav-link-users .nav-icon i {
+  color: #ec4899;
+}
+
+.nav-link-machines .nav-icon i {
+  color: #10b981;
+}
+
+.nav-link-fuels .nav-icon i {
+  color: #f43f5e;
+}
+
+.nav-link-daily-collection .nav-icon i {
+  color: #a855f7;
+}
+
+.nav-link-audit-logs .nav-icon i {
+  color: #94a3b8;
+}
+
+.nav-link.active .nav-icon i {
+  color: white !important;
+}
+
+.navbar-user {
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-info {
+  margin-bottom: 16px;
+}
+
+.user-name {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  display: block;
+}
+
+.user-role {
+  color: #64748b;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 10px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* Collapsed Responsive Adjustments */
+.navbar.collapsed .navbar-brand h2,
+.navbar.collapsed .nav-text,
+.navbar.collapsed .user-info {
+  display: none;
+}
+
+.navbar.collapsed .nav-link {
+  justify-content: center;
+  padding: 14px;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .navbar {
+    transform: translateX(-100%);
+  }
+
+  .navbar.mobile-open {
+    transform: translateX(0);
+  }
+}
