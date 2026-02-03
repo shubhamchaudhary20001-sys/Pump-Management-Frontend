@@ -41,13 +41,19 @@ function App() {
         // Verify token with backend
         const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || '/api';
         const response = await axios.get(`${apiBaseUrl}/auth/verify`);
-        setCurrentUser(response.data.user);
-        setIsAuthenticated(true);
+
+        if (response.data && response.data.user) {
+          setCurrentUser(response.data.user);
+          setIsAuthenticated(true);
+        } else {
+          throw new Error('Invalid authentication response');
+        }
       } catch (error) {
         // Token invalid, clear storage
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         delete axios.defaults.headers.common['Authorization'];
+        setIsAuthenticated(false);
       }
     }
     setLoading(false);

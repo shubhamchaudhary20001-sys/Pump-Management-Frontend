@@ -203,8 +203,15 @@ const Dashboard = ({ organizationFilter }) => {
   }, [currentUser, organizationFilter]);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    setCurrentUser(user);
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setCurrentUser(user);
+      }
+    } catch (e) {
+      console.error('Error parsing user from localStorage', e);
+    }
     setLoading(false);
   }, []);
 
