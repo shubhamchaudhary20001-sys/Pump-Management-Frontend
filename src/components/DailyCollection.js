@@ -21,6 +21,7 @@ const DailyCollection = ({ organizationFilter }) => {
         shortExcess: 0,
         expenses: [{ amount: '', remarks: '' }],
         shift: '',
+        isTestingDone: false,
         notes: ''
     });
     const [collections, setCollections] = useState([]);
@@ -154,13 +155,16 @@ const DailyCollection = ({ organizationFilter }) => {
         }
     }, [appliedFilters, organizationFilter]);
 
-    const fetchTestingVolume = useCallback(async (machineId, date) => {
+    const fetchTestingVolume = useCallback(async (machineId, date, shiftId = null) => {
         if (!machineId || !date) {
             setTestingVolume(0);
             return;
         }
         try {
-            const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/testings/for-date-machine?machine=${machineId}&date=${date}`);
+            const shift = shiftId || formData.shift;
+            let url = `${process.env.REACT_APP_API_BASE_URL}/testings/for-date-machine?machine=${machineId}&date=${date}`;
+            if (shift) url += `&shift=${shift}`;
+            const response = await axios.get(url);
             setTestingVolume(response.data.testAmount || 0);
         } catch (error) {
             console.error('Error fetching testing volume:', error);
@@ -281,10 +285,9 @@ const DailyCollection = ({ organizationFilter }) => {
         const start = parseFloat(data.startReading) || 0;
         const end = parseFloat(data.endReading) || 0;
         const rate = parseFloat(data.rate) || 0;
-        const testingAmount = (testingVol || 0) * rate;
-
         const totalSale = Math.max(0, end - start);
         const grossAmount = totalSale * rate;
+        const testingAmount = data.isTestingDone ? (testingVol || 0) * rate : 0;
         const netAmount = grossAmount - testingAmount;
 
         const cash = parseFloat(data.cash) || 0;
@@ -323,10 +326,14 @@ const DailyCollection = ({ organizationFilter }) => {
             const newData = { ...prev, [name]: value };
 
             if (name === 'date' && selectedMachine) {
-                fetchTestingVolume(selectedMachine, value);
+                fetchTestingVolume(selectedMachine, value, formData.shift);
             }
 
-            if (['startReading', 'endReading', 'rate', 'cash', 'card', 'upi', 'credit'].includes(name)) {
+            if (name === 'shift' && selectedMachine) {
+                fetchTestingVolume(selectedMachine, formData.date, value);
+            }
+
+            if (['startReading', 'endReading', 'rate', 'cash', 'card', 'upi', 'credit', 'isTestingDone'].includes(name)) {
                 const results = calculateShortExcess(newData, testingVolume);
                 return { ...newData, ...results };
             }
@@ -408,6 +415,7 @@ const DailyCollection = ({ organizationFilter }) => {
             shortExcess: item.shortExcess,
             expenses: item.expenses || [{ amount: '', remarks: '' }],
             shift: item.shift?._id || item.shift || '',
+            isTestingDone: item.isTestingDone || false,
             notes: item.notes || ''
         });
         setShowForm(true);
@@ -443,6 +451,7 @@ const DailyCollection = ({ organizationFilter }) => {
             shortExcess: 0,
             expenses: [{ amount: '', remarks: '' }],
             shift: user?.shift?._id || user?.shift || '',
+            isTestingDone: false,
             notes: ''
         });
         setSelectedMachine('');
@@ -606,14 +615,24 @@ const DailyCollection = ({ organizationFilter }) => {
                             />
                         </div>
                         <div className="form-group third">
-                            <label>Testing Volume (L)</label>
-                            <input
-                                type="number"
-                                value={testingVolume}
-                                readOnly
-                                className="readonly-input"
-                                style={{ backgroundColor: '#f0f9ff', color: '#0369a1', fontWeight: 'bold' }}
-                            />
+                            <label>Testing Deduction (₹)</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', height: '42px' }}>
+                                <div className="checkbox-group" style={{ margin: 0 }}>
+                                    <input
+                                        type="checkbox"
+                                        id="isTestingDone"
+                                        name="isTestingDone"
+                                        checked={formData.isTestingDone}
+                                        onChange={(e) => handleChange({ target: { name: 'isTestingDone', value: e.target.checked } })}
+                                    />
+                                    <label htmlFor="isTestingDone" style={{ marginBottom: 0 }}>Deduct Testing?</label>
+                                </div>
+                                {formData.isTestingDone && (
+                                    <span style={{ color: '#0369a1', fontWeight: '600', fontSize: '14px' }}>
+                                        - ₹{(testingVolume * formData.rate).toFixed(2)}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                         <div className="form-group third">
                             <label>Net Sale Amount (₹)</label>
@@ -755,26 +774,7 @@ const DailyCollection = ({ organizationFilter }) => {
                                         className="btn-primary"
                                         onClick={() => {
                                             const cardAmount = relatedTransactions.reduce((sum, t) => sum + (t.totalPrice || 0), 0).toFixed(2);
-                                            setFormData(prev => {
-                                                const newData = { ...prev, card: cardAmount };
-                                                // Trigger calculation manually or via helper
-                                                const start = parseFloat(prev.startReading) || 0;
-                                                const end = parseFloat(prev.endReading) || 0;
-                                                const rate = parseFloat(prev.rate) || 0;
-                                                const totalSale = Math.max(0, end - start);
-                                                const amount = totalSale * rate;
-                                                const cash = parseFloat(prev.cash) || 0;
-                                                const card = parseFloat(cardAmount) || 0;
-                                                const upi = parseFloat(prev.upi) || 0;
-                                                const totalCollected = cash + card + upi;
-                                                const shortExcess = totalCollected - amount;
-                                                return {
-                                                    ...newData,
-                                                    totalSale: totalSale.toFixed(2),
-                                                    amount: amount.toFixed(2),
-                                                    shortExcess: shortExcess.toFixed(2)
-                                                };
-                                            });
+                                            setFormData(prev => ({ ...prev, card: cardAmount }));
                                         }}
                                         style={{ padding: '6px 12px', fontSize: '12px' }}
                                     >

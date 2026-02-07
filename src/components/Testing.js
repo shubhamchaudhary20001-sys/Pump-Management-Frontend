@@ -7,6 +7,7 @@ const Testing = ({ organizationFilter }) => {
     const [tanks, setTanks] = useState([]);
     const [machines, setMachines] = useState([]);
     const [allMachines, setAllMachines] = useState([]);
+    const [shifts, setShifts] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [editingTesting, setEditingTesting] = useState(null);
@@ -15,6 +16,7 @@ const Testing = ({ organizationFilter }) => {
         date: new Date().toISOString().split('T')[0],
         tank: '',
         machine: '',
+        shift: '',
         testAmount: '',
         notes: ''
     });
@@ -74,6 +76,16 @@ const Testing = ({ organizationFilter }) => {
 
             setTanks(tanksRes.data.data || []);
             setAllMachines(machinesRes.data.data || []);
+
+            // Fetch shifts
+            let shiftsUrl = `${process.env.REACT_APP_API_BASE_URL}/shifts?isactive=true&limit=1000`;
+            if (user?.role !== 'admin' && user?.organisation?._id) {
+                shiftsUrl += `&organisation=${user.organisation._id}`;
+            } else if (organizationFilter) {
+                shiftsUrl += `&organisation=${organizationFilter}`;
+            }
+            const shiftsRes = await axios.get(shiftsUrl);
+            setShifts(shiftsRes.data || []);
         } catch (error) {
             console.error('Error fetching tanks and machines:', error);
         }
@@ -115,6 +127,7 @@ const Testing = ({ organizationFilter }) => {
             date: new Date().toISOString().split('T')[0],
             tank: '',
             machine: '',
+            shift: '',
             testAmount: '',
             notes: ''
         });
@@ -156,6 +169,7 @@ const Testing = ({ organizationFilter }) => {
             date: testing.date.split('T')[0],
             tank: testing.tank?._id || '',
             machine: testing.machine?._id || '',
+            shift: testing.shift?._id || '',
             testAmount: testing.testAmount,
             notes: testing.notes || ''
         });
@@ -288,6 +302,20 @@ const Testing = ({ organizationFilter }) => {
                             {!formData.tank && <small className="form-text">Select a tank first</small>}
                         </div>
                         <div className="form-group half">
+                            <label>Shift *</label>
+                            <select
+                                name="shift"
+                                value={formData.shift}
+                                onChange={handleChange}
+                                required
+                            >
+                                <option value="">Select Shift</option>
+                                {shifts.map(shift => (
+                                    <option key={shift._id} value={shift._id}>{shift.name} ({shift.startTime} - {shift.endTime})</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group half">
                             <label>Test Amount (Liters) *</label>
                             <input
                                 type="number"
@@ -389,6 +417,7 @@ const Testing = ({ organizationFilter }) => {
                                     <th>Date</th>
                                     <th>Tank</th>
                                     <th>Machine</th>
+                                    <th>Shift</th>
                                     <th>Amount (L)</th>
                                     <th>Notes</th>
                                     <th>Created By</th>
@@ -401,6 +430,7 @@ const Testing = ({ organizationFilter }) => {
                                         <td>{new Date(testing.date).toLocaleDateString()}</td>
                                         <td><strong>{testing.tank?.name || 'N/A'}</strong></td>
                                         <td>{testing.machine?.name || 'N/A'}</td>
+                                        <td>{testing.shift?.name || 'N/A'}</td>
                                         <td className="number-cell">{testing.testAmount.toFixed(2)}</td>
                                         <td>{testing.notes || '-'}</td>
                                         <td>{testing.createdby}</td>
