@@ -24,6 +24,7 @@ const TankRefills = ({ organizationFilter }) => {
         startDate: '',
         endDate: ''
     });
+    const [showFilters, setShowFilters] = useState(false);
 
     const fetchRefills = useCallback(async () => {
         setIsLoading(true);
@@ -208,6 +209,12 @@ const TankRefills = ({ organizationFilter }) => {
             <div className="header">
                 <h1><i className="fas fa-gas-pump"></i> Tank Refills</h1>
                 <div className="header-actions">
+                    <button
+                        className={`btn-filter ${showFilters ? 'active' : ''}`}
+                        onClick={() => setShowFilters(!showFilters)}
+                    >
+                        <i className="fas fa-search"></i> {showFilters ? 'Hide Search' : 'Search'}
+                    </button>
                     <button className="btn-export" onClick={handleExport}>
                         <i className="fas fa-file-excel"></i> Export
                     </button>
@@ -327,36 +334,37 @@ const TankRefills = ({ organizationFilter }) => {
                 </form>
             )}
 
-            <div className="filters-section">
-                <h3>Filters</h3>
-                <div className="filter-row">
-                    <div className="filter-group">
-                        <label>Tank</label>
-                        <select
-                            value={filters.tank}
-                            onChange={(e) => setFilters({ ...filters, tank: e.target.value })}
-                        >
-                            <option value="">All Tanks</option>
-                            {tanks.map(tank => (
-                                <option key={tank._id} value={tank._id}>{tank.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="filter-group">
-                        <label>Start Date</label>
-                        <input
-                            type="date"
-                            value={filters.startDate}
-                            onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                        />
-                    </div>
-                    <div className="filter-group">
-                        <label>End Date</label>
-                        <input
-                            type="date"
-                            value={filters.endDate}
-                            onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                        />
+            <div className={`filters-wrapper ${showFilters ? 'expanded' : ''}`}>
+                <div className="filters-section">
+                    <div className="filter-row fade-in">
+                        <div className="filter-group">
+                            <label>Tank</label>
+                            <select
+                                value={filters.tank}
+                                onChange={(e) => setFilters({ ...filters, tank: e.target.value })}
+                            >
+                                <option value="">All Tanks</option>
+                                {tanks.map(t => (
+                                    <option key={t._id} value={t._id}>{t.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="filter-group">
+                            <label>From Date</label>
+                            <input
+                                type="date"
+                                value={filters.startDate}
+                                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+                            />
+                        </div>
+                        <div className="filter-group">
+                            <label>To Date</label>
+                            <input
+                                type="date"
+                                value={filters.endDate}
+                                onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

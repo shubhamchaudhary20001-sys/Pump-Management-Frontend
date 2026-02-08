@@ -11,6 +11,7 @@ const Machines = ({ organizationFilter }) => {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingMachine, setEditingMachine] = useState(null);
+    const [allShifts, setAllShifts] = useState([]);
     const [message, setMessage] = useState({ text: '', type: '' });
     const [currentUser, setCurrentUser] = useState(null);
     const [pagination, setPagination] = useState({
@@ -35,7 +36,7 @@ const Machines = ({ organizationFilter }) => {
         name: '',
         fuel: '',
         organisation: '',
-        assignedTo: '',
+        assignments: [],
         tank: '',
         currentReading: '',
         isactive: true
@@ -51,6 +52,7 @@ const Machines = ({ organizationFilter }) => {
             let orgsUrl = `${process.env.REACT_APP_API_BASE_URL}/organisations?page=1&limit=1000`;
             let usersUrl = `${process.env.REACT_APP_API_BASE_URL}/users?isactive=true&limit=1000`;
             let tanksUrl = `${process.env.REACT_APP_API_BASE_URL}/tanks?isactive=true&limit=1000`;
+            let shiftsUrl = `${process.env.REACT_APP_API_BASE_URL}/shifts?isactive=true&limit=1000`;
 
             // Add filters
             if (filters.search) {
@@ -76,12 +78,14 @@ const Machines = ({ organizationFilter }) => {
                 orgsUrl += `&organisation=${orgId}`;
                 usersUrl += `&organisation=${orgId}`;
                 tanksUrl += `&organisation=${orgId}`;
+                shiftsUrl += `&organisation=${orgId}`;
             } else if (organizationFilter) {
                 machinesUrl += `&organisation=${organizationFilter}`;
                 fuelsUrl += `&organisation=${organizationFilter}`;
                 orgsUrl += `&organisation=${organizationFilter}`;
                 usersUrl += `&organisation=${organizationFilter}`;
                 tanksUrl += `&organisation=${organizationFilter}`;
+                shiftsUrl += `&organisation=${organizationFilter}`;
             }
 
             // Add sorting
@@ -89,12 +93,13 @@ const Machines = ({ organizationFilter }) => {
                 machinesUrl += `&sortBy=${sortConfig.key}&sortOrder=${sortConfig.direction}`;
             }
 
-            const [machinesRes, fuelsRes, orgsRes, usersRes, tanksRes] = await Promise.all([
+            const [machinesRes, fuelsRes, orgsRes, usersRes, tanksRes, shiftsRes] = await Promise.all([
                 axios.get(machinesUrl),
                 axios.get(fuelsUrl),
                 axios.get(orgsUrl),
                 axios.get(usersUrl),
-                axios.get(tanksUrl)
+                axios.get(tanksUrl),
+                axios.get(shiftsUrl)
             ]);
 
             setMachines(machinesRes.data.data || machinesRes.data || []);
@@ -106,6 +111,7 @@ const Machines = ({ organizationFilter }) => {
             const salesmen = (usersRes.data?.data || usersRes.data || []).filter(u => u.roleid === 'salesman');
             setUsers(salesmen);
             setTanks(tanksRes.data?.data || tanksRes.data || []);
+            setAllShifts(shiftsRes.data?.data || shiftsRes.data || []);
 
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -189,7 +195,10 @@ const Machines = ({ organizationFilter }) => {
             name: machine.name,
             fuel: machine.fuel._id,
             organisation: machine.organisation,
-            assignedTo: machine.assignedTo ? machine.assignedTo._id : '',
+            assignments: machine.assignments?.map(a => ({
+                user: a.user?._id || a.user,
+                shift: a.shift?._id || a.shift
+            })) || [],
             tank: machine.tank ? machine.tank._id : '',
             currentReading: machine.currentReading,
             isactive: machine.isactive
@@ -216,7 +225,7 @@ const Machines = ({ organizationFilter }) => {
             name: '',
             fuel: '',
             organisation: currentUser?.role !== 'admin' ? currentUser.organisation._id : '',
-            assignedTo: '',
+            assignments: [],
             tank: '',
             currentReading: '',
             isactive: true
@@ -288,17 +297,84 @@ const Machines = ({ organizationFilter }) => {
                                 required
                             />
                         </div>
-                        <div className="form-group">
-                            <label>Assign to Salesman</label>
-                            <select
-                                value={formData.assignedTo}
-                                onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-                            >
-                                <option value="">-- No Assignment --</option>
-                                {users.map(u => (
-                                    <option key={u._id} value={u._id}>{u.firstname} {u.lastname}</option>
-                                ))}
-                            </select>
+                        <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                Assignments (Shift-wise)
+                                <button
+                                    type="button"
+                                    className="btn-primary"
+                                    onClick={() => setFormData({
+                                        ...formData,
+                                        assignments: [...(formData.assignments || []), { user: '', shift: '' }]
+                                    })}
+                                    style={{ padding: '6px 12px', fontSize: '11px', height: 'auto' }}
+                                >
+                                    <i className="fas fa-plus"></i> Add Assignment
+                                </button>
+                            </label>
+                            {(formData.assignments || []).map((assignment, index) => (
+                                <div key={index} className="form-row" style={{ marginTop: '10px', alignItems: 'flex-end' }}>
+                                    <div className="form-group" style={{ flex: 1 }}>
+                                        <label>Salesman</label>
+                                        <select
+                                            value={assignment.user}
+                                            onChange={(e) => {
+                                                const userId = e.target.value;
+                                                const newAssignments = [...formData.assignments];
+                                                newAssignments[index].user = userId;
+
+                                                // Find the selected user's default shift
+                                                const selectedUser = users.find(u => u._id === userId);
+                                                if (selectedUser && selectedUser.shift) {
+                                                    newAssignments[index].shift = selectedUser.shift._id || selectedUser.shift;
+                                                }
+
+                                                setFormData({ ...formData, assignments: newAssignments });
+                                            }}
+                                            required
+                                        >
+                                            <option value="">Select Salesman</option>
+                                            {users.map(u => (
+                                                <option key={u._id} value={u._id}>{u.firstname} {u.lastname}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="form-group" style={{ flex: 1 }}>
+                                        <label>Shift</label>
+                                        <select
+                                            value={assignment.shift}
+                                            onChange={(e) => {
+                                                const newAssignments = [...formData.assignments];
+                                                newAssignments[index].shift = e.target.value;
+                                                setFormData({ ...formData, assignments: newAssignments });
+                                            }}
+                                            required
+                                        >
+                                            <option value="">Select Shift</option>
+                                            {/* We need shifts here as well. I'll add them to fetchData. */}
+                                            {tanks.reduce((acc, tank) => {
+                                                // This is a bit hacky, let's just make sure shifts are available
+                                                return acc;
+                                            }, [])}
+                                            {/* Note: I'll need to fetch shifts in fetchData and add to state */}
+                                            {allShifts.map(s => (
+                                                <option key={s._id} value={s._id}>{s.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="btn-delete-sm"
+                                        onClick={() => {
+                                            const newAssignments = formData.assignments.filter((_, i) => i !== index);
+                                            setFormData({ ...formData, assignments: newAssignments });
+                                        }}
+                                        style={{ marginBottom: '10px' }}
+                                    >
+                                        <i className="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                         <div className="form-group">
                             <label>Source Tank</label>
@@ -443,7 +519,19 @@ const Machines = ({ organizationFilter }) => {
                                     <td>{machine.fuel?.name}</td>
                                     <td>{machine.tank?.name || <span className="text-muted" style={{ fontSize: '12px' }}>N/A</span>}</td>
                                     <td>{machine.currentReading}</td>
-                                    <td>{machine.assignedTo ? `${machine.assignedTo.firstname} ${machine.assignedTo.lastname}` : 'Unassigned'}</td>
+                                    <td>
+                                        {machine.assignments && machine.assignments.length > 0 ? (
+                                            <div className="assigned-users">
+                                                {machine.assignments.map((a, i) => (
+                                                    <span key={i} className="user-tag">
+                                                        {a.user?.firstname} {a.user?.lastname} ({a.shift?.name || 'Any'})
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="text-muted">Unassigned</span>
+                                        )}
+                                    </td>
                                     <td>
                                         <span className={`status-badge ${machine.isactive ? 'approved' : 'pending'}`}>
                                             {machine.isactive ? 'Active' : 'Inactive'}

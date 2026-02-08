@@ -16,14 +16,24 @@ const Shifts = ({ organizationFilter }) => {
         assignedSalesmen: []
     });
     const [salesmen, setSalesmen] = useState([]);
+    const [filters, setFilters] = useState({
+        name: '',
+        isactive: ''
+    });
+    const [showFilters, setShowFilters] = useState(false);
 
     const fetchShifts = useCallback(async () => {
         setIsLoading(true);
         try {
             const user = JSON.parse(localStorage.getItem('user'));
             const orgId = user?.role !== 'admin' ? user?.organisation?._id : organizationFilter;
-            const params = orgId ? `?organisation=${orgId}` : '';
-            const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/shifts${params}`);
+
+            const params = new URLSearchParams();
+            if (orgId) params.append('organisation', orgId);
+            if (filters.name) params.append('name', filters.name);
+            if (filters.isactive) params.append('isactive', filters.isactive);
+
+            const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/shifts?${params}`);
             setShifts(response.data);
         } catch (error) {
             console.error('Error fetching shifts:', error);
@@ -31,7 +41,7 @@ const Shifts = ({ organizationFilter }) => {
         } finally {
             setIsLoading(false);
         }
-    }, [organizationFilter]);
+    }, [organizationFilter, filters]);
 
     const fetchSalesmen = useCallback(async () => {
         try {
@@ -249,6 +259,33 @@ const Shifts = ({ organizationFilter }) => {
                     </div>
                 </form>
             )}
+
+            <div className={`filters-wrapper ${showFilters ? 'expanded' : ''}`}>
+                <div className="filters-section">
+                    <div className="filter-row">
+                        <div className="filter-group">
+                            <label>Search Shift Name</label>
+                            <input
+                                type="text"
+                                value={filters.name}
+                                onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+                                placeholder="Search by name..."
+                            />
+                        </div>
+                        <div className="filter-group">
+                            <label>Status</label>
+                            <select
+                                value={filters.isactive}
+                                onChange={(e) => setFilters({ ...filters, isactive: e.target.value })}
+                            >
+                                <option value="">All Status</option>
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div className="shifts-list">
                 <h3>Existing Shifts</h3>

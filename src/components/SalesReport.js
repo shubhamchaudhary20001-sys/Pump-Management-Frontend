@@ -103,7 +103,7 @@ const SalesReport = ({ organizationFilter }) => {
                 </div>
             </div>
 
-            {showFilters && (
+            <div className={`filters-wrapper ${showFilters ? 'expanded' : ''}`}>
                 <div className="filters-section">
                     <div className="filters-row">
                         <div className="filter-group">
@@ -143,7 +143,7 @@ const SalesReport = ({ organizationFilter }) => {
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
 
             {loading ? (
                 <div className="loading-state">

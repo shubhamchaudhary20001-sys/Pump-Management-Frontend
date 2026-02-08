@@ -244,7 +244,7 @@
 }
 
 .number-cell {
-    text-align: right;
+    text-align: left;
     font-weight: 500;
     font-family: 'Courier New', monospace;
 }

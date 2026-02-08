@@ -223,26 +223,26 @@ const Organizations = () => {
               </select>
             </div>
 
-            {/* <div className="filter-actions" style={{ gridColumn: '1 / -1', justifyContent: 'flex-end', marginTop: '10px' }}> */}
-            <button
-              onClick={() => {
-                setFilters({
-                  search: '',
-                  status: ''
-                });
-                fetchOrganizations();
-              }}
-              className="btn-secondary"
-            >
-              <i className="fas fa-undo"></i> Reset
-            </button>
-            <button onClick={() => fetchOrganizations()} className="btn-primary">
-              <i className="fas fa-filter"></i> Apply
-            </button>
-            <button onClick={handleExport} className="btn-excel">
-              <i className="fas fa-file-excel"></i> Excel
-            </button>
-            {/* </div> */}
+            <div className="filter-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <button
+                onClick={() => {
+                  setFilters({
+                    search: '',
+                    status: ''
+                  });
+                  fetchOrganizations();
+                }}
+                className="btn-secondary"
+              >
+                <i className="fas fa-undo"></i> Reset
+              </button>
+              <button onClick={() => fetchOrganizations()} className="btn-primary">
+                <i className="fas fa-filter"></i> Apply
+              </button>
+              <button onClick={handleExport} className="btn-excel">
+                <i className="fas fa-file-excel"></i> Excel
+              </button>
+            </div>
           </div>
         </div>
       </div>

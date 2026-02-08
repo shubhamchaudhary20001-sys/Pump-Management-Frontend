@@ -7,22 +7,25 @@ const DailyCollection = ({ organizationFilter }) => {
     const [users, setUsers] = useState([]);
     const [shifts, setShifts] = useState([]);
     const [selectedMachine, setSelectedMachine] = useState('');
-    const [formData, setFormData] = useState({
-        date: new Date().toISOString().split('T')[0],
-        startReading: '',
-        endReading: '',
-        totalSale: 0,
-        rate: 0,
-        amount: 0,
-        cash: '',
-        card: '',
-        upi: '',
-        credit: '',
-        shortExcess: 0,
-        expenses: [{ amount: '', remarks: '' }],
-        shift: '',
-        isTestingDone: false,
-        notes: ''
+    const [formData, setFormData] = useState(() => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        return {
+            date: new Date().toISOString().split('T')[0],
+            startReading: '',
+            endReading: '',
+            totalSale: 0,
+            rate: 0,
+            amount: 0,
+            cash: '',
+            card: '',
+            upi: '',
+            credit: '',
+            shortExcess: 0,
+            expenses: [{ amount: '', remarks: '' }],
+            shift: user?.shift?._id || user?.shift || '',
+            isTestingDone: false,
+            notes: ''
+        };
     });
     const [collections, setCollections] = useState([]);
     const [pagination, setPagination] = useState({
@@ -808,39 +811,33 @@ const DailyCollection = ({ organizationFilter }) => {
                                 type="date"
                                 value={filters.startDate}
                                 onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                                style={{ width: '90%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                             />
                         </div>
                         <div className="filter-group">
-                            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>End Date</label>
+                            <label>To Date</label>
                             <input
                                 type="date"
                                 value={filters.endDate}
                                 onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                                style={{ width: '90%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                             />
                         </div>
                         <div className="filter-group">
-                            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>Machine</label>
+                            <label>Machine</label>
                             <select
                                 value={filters.machine}
                                 onChange={(e) => setFilters({ ...filters, machine: e.target.value })}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                             >
                                 <option value="">All Machines</option>
-                                {machines.map(machine => (
-                                    <option key={machine._id} value={machine._id}>
-                                        {machine.name} ({machine.fuel?.name})
-                                    </option>
+                                {machines.map(m => (
+                                    <option key={m._id} value={m._id}>{m.name}</option>
                                 ))}
                             </select>
                         </div>
                         <div className="filter-group">
-                            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>Status</label>
+                            <label>Status</label>
                             <select
                                 value={filters.status}
                                 onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                             >
                                 <option value="">All Status</option>
                                 <option value="pending">Pending</option>
@@ -848,35 +845,31 @@ const DailyCollection = ({ organizationFilter }) => {
                             </select>
                         </div>
                         <div className="filter-group">
-                            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>Created By</label>
+                            <label>Created By</label>
                             <select
                                 value={filters.createdby}
                                 onChange={(e) => setFilters({ ...filters, createdby: e.target.value })}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                             >
-                                <option value="">All Users</option>
-                                {users.map(user => (
-                                    <option key={user._id} value={`${user.firstname} ${user.lastname}`}>
-                                        {user.firstname} {user.lastname} ({user.roleid || user.role})
-                                    </option>
+                                <option value="">All Staff</option>
+                                {users.map(u => (
+                                    <option key={u._id} value={`${u.firstname} ${u.lastname}`}>{u.firstname} {u.lastname}</option>
                                 ))}
                             </select>
                         </div>
                         <div className="filter-group">
-                            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>Shift</label>
+                            <label>Shift</label>
                             <select
                                 value={filters.shift}
                                 onChange={(e) => setFilters({ ...filters, shift: e.target.value })}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                             >
                                 <option value="">All Shifts</option>
-                                {shifts.map(shift => (
-                                    <option key={shift._id} value={shift._id}>{shift.name}</option>
+                                {shifts.map(s => (
+                                    <option key={s._id} value={s._id}>{s.name}</option>
                                 ))}
                             </select>
                         </div>
                     </div>
-                    <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+                    <div className="filter-actions" style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
                         <button
                             className="btn-primary"
                             onClick={handleApplyFilters}

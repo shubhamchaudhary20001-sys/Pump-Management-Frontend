@@ -154,6 +154,11 @@ const Users = ({ organizationFilter }) => {
 
   const handleEdit = (user) => {
     setEditingUser(user);
+    // Find all machines assigned to this user
+    const assignedMachines = machines.filter(m =>
+      m.assignments?.some(a => (a.user?._id || a.user) === user._id)
+    );
+
     setFormData({
       firstname: user.firstname,
       lastname: user.lastname,
@@ -162,20 +167,11 @@ const Users = ({ organizationFilter }) => {
       roleid: user.roleid,
       organisation: user.organisation?._id || user.organisation,
       username: user.username,
-      password: '',
-      createdby: user.createdby,
-      assignedMachineId: '', // Initialize default
-      shift: user.shift?._id || user.shift || ''
+      password: '', // Password usually kept empty on edit
+      assignedMachineIds: assignedMachines.map(m => m._id),
+      shift: user.shift?._id || user.shift || '',
+      isactive: user.isactive
     });
-
-    // Find if user has a machine assigned
-    // We need to check the machines list for a machine where assignedTo._id matches user._id
-    // But assignedTo in machines list is populated object? Yes based on backend.
-    const assignedMachine = machines.find(m => m.assignedTo && m.assignedTo._id === user._id);
-    if (assignedMachine) {
-      setFormData(prev => ({ ...prev, assignedMachineId: assignedMachine._id }));
-    }
-
     setShowForm(true);
   };
 
@@ -201,7 +197,9 @@ const Users = ({ organizationFilter }) => {
       organisation: '',
       username: '',
       password: '',
-      assignedMachineId: ''
+      assignedMachineIds: [],
+      shift: '',
+      isactive: true
     });
     setEditingUser(null);
     setShowForm(false);
@@ -324,24 +322,33 @@ const Users = ({ organizationFilter }) => {
             (formData.roleid === 'salesman' || formData.roleid === 'manager') && (
               <div className="form-row">
                 <div className="form-group">
-                  <label>Assign Machine:</label>
-                  <select
-                    value={formData.assignedMachineId}
-                    onChange={(e) => setFormData({ ...formData, assignedMachineId: e.target.value })}
-                  >
-                    <option value="">-- No Assignment --</option>
+                  <label>Assign Machines:</label>
+                  <div className="checkbox-group" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', maxHeight: '200px', overflowY: 'auto' }}>
                     {machines
-                      .filter(m => !m.assignedTo || m.assignedTo._id === (editingUser ? editingUser._id : null) || !m.assignedTo) // Show unassigned or assigned to current editing user
-                      // Ideally we should just show all and let backend handle re-assignment? 
-                      // Or show all free machines + machine assigned to this user.
-                      // Let's filter: Free machines OR Machine assigned to THIS user
-                      .filter(m => !m.assignedTo || (editingUser && m.assignedTo._id === editingUser._id) || (m.assignedTo && typeof m.assignedTo === 'string' && m.assignedTo === editingUser?._id))
-                      .map(m => (
-                        <option key={m._id} value={m._id}>{m.name} ({m.fuel?.name})</option>
-                      ))
+                      .map(m => {
+                        const isAssigned = formData.assignedMachineIds.includes(m._id);
+                        return (
+                          <div key={m._id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <input
+                              type="checkbox"
+                              id={`machine-${m._id}`}
+                              checked={isAssigned}
+                              onChange={(e) => {
+                                const newIds = e.target.checked
+                                  ? [...formData.assignedMachineIds, m._id]
+                                  : formData.assignedMachineIds.filter(id => id !== m._id);
+                                setFormData({ ...formData, assignedMachineIds: newIds });
+                              }}
+                            />
+                            <label htmlFor={`machine-${m._id}`} style={{ marginBottom: 0, cursor: 'pointer', fontSize: '13px' }}>
+                              {m.name} ({m.fuel?.name})
+                            </label>
+                          </div>
+                        );
+                      })
                     }
-                  </select>
-                  <small className="form-text text-muted">Only unassigned machines are shown.</small>
+                  </div>
+                  <small className="form-text text-muted">A user can be assigned to multiple machines.</small>
                 </div>
               </div>
             )
@@ -435,27 +442,27 @@ const Users = ({ organizationFilter }) => {
               </div>
             )}
 
-            {/* <div className="filter-actions" style={{ gridColumn: '1 / -1', justifyContent: 'flex-end', marginTop: '10px' }}> */}
-            <button
-              onClick={() => {
-                setFilters({
-                  search: '',
-                  role: '',
-                  organisation: ''
-                });
-                fetchData();
-              }}
-              className="btn-secondary"
-            >
-              <i className="fas fa-undo"></i> Reset
-            </button>
-            <button onClick={() => fetchData()} className="btn-primary">
-              <i className="fas fa-filter"></i> Apply
-            </button>
-            <button onClick={handleExport} className="btn-excel">
-              <i className="fas fa-file-excel"></i> Excel
-            </button>
-            {/* </div> */}
+            <div className="filter-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <button
+                onClick={() => {
+                  setFilters({
+                    search: '',
+                    role: '',
+                    organisation: ''
+                  });
+                  fetchData();
+                }}
+                className="btn-secondary"
+              >
+                <i className="fas fa-undo"></i> Reset
+              </button>
+              <button onClick={() => fetchData()} className="btn-primary">
+                <i className="fas fa-filter"></i> Apply
+              </button>
+              <button onClick={handleExport} className="btn-excel">
+                <i className="fas fa-file-excel"></i> Excel
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -472,6 +479,7 @@ const Users = ({ organizationFilter }) => {
                 <th onClick={() => handleSort('email')} style={{ cursor: 'pointer' }}>Email {sortConfig.key === 'email' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
                 <th>Mobile</th>
                 <th onClick={() => handleSort('roleid')} style={{ cursor: 'pointer' }}>Role {sortConfig.key === 'roleid' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
+                <th>Assigned Machine</th>
                 <th>Organization</th>
                 <th onClick={() => handleSort('isactive')} style={{ cursor: 'pointer' }}>Status {sortConfig.key === 'isactive' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
                 <th>Actions</th>
@@ -485,6 +493,23 @@ const Users = ({ organizationFilter }) => {
                   <td>{user.email}</td>
                   <td>{user.mobileno}</td>
                   <td><span className={`status-badge ${user.roleid}`}>{user.roleid}</span></td>
+                  <td>
+                    {(() => {
+                      const assignedToUser = machines.filter(m =>
+                        m.assignments?.some(a => (a.user?._id || a.user) === user._id)
+                      );
+                      if (assignedToUser.length === 0) return <span className="text-muted">None</span>;
+                      return (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {assignedToUser.map(m => (
+                            <span key={m._id} className="machine-badge" style={{ fontSize: '11px', padding: '2px 6px', background: '#e0f2fe', color: '#0369a1', borderRadius: '4px', border: '1px solid #bae6fd' }}>
+                              {m.name}
+                            </span>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </td>
                   <td>{user.organisation?.name || getOrgName(user.organisation)}</td>
                   <td>
                     <span className={`status-badge ${user.isactive ? 'approved' : 'pending'}`}>
