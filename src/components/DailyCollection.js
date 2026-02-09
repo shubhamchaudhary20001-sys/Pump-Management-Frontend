@@ -173,7 +173,7 @@ const DailyCollection = ({ organizationFilter }) => {
             console.error('Error fetching testing volume:', error);
             setTestingVolume(0);
         }
-    }, []);
+    }, [formData.shift]);
 
     const fetchUsers = useCallback(async () => {
         try {
