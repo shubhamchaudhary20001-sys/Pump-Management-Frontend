@@ -215,93 +215,101 @@ const Tanks = ({ organizationFilter }) => {
             )}
 
             {showForm && (
-                <form className="machine-form tank-form" onSubmit={handleSubmit}>
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Tank Name</label>
-                            <input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Fuel Type</label>
-                            <select
-                                value={formData.fuel}
-                                onChange={(e) => setFormData({ ...formData, fuel: e.target.value })}
-                                required
-                            >
-                                <option value="">Select Fuel</option>
-                                {fuels.map(f => (
-                                    <option key={f._id} value={f._id}>{f.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Capacity (Liters)</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={formData.capacity}
-                                onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Current Stock (Liters)</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={formData.currentStock}
-                                onChange={(e) => setFormData({ ...formData, currentStock: e.target.value })}
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <label>Connected Machines</label>
-                        <div className="machines-multiselect">
-                            {machines.map(m => (
-                                <label key={m._id} className="checkbox-label">
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h2>{editingTank ? 'Edit Tank' : 'Add New Tank'}</h2>
+                        <form className="machine-form tank-form-modal" onSubmit={handleSubmit} style={{ padding: 0, border: 'none', boxShadow: 'none', maxWidth: 'none', margin: 0 }}>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Tank Name</label>
                                     <input
-                                        type="checkbox"
-                                        checked={formData.machines.includes(m._id)}
-                                        onChange={() => handleMachineToggle(m._id)}
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        required
                                     />
-                                    <span>{m.name}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Fuel Type</label>
+                                    <select
+                                        value={formData.fuel}
+                                        onChange={(e) => setFormData({ ...formData, fuel: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">Select Fuel</option>
+                                        {fuels.map(f => (
+                                            <option key={f._id} value={f._id}>{f.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
 
-                    {currentUser?.role === 'admin' && (
-                        <div className="form-group">
-                            <label>Organisation</label>
-                            <select
-                                value={formData.organisation}
-                                onChange={(e) => setFormData({ ...formData, organisation: e.target.value })}
-                                required
-                            >
-                                <option value="">Select Organisation</option>
-                                {organizations.map(o => (
-                                    <option key={o._id} value={o._id}>{o.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Capacity (Liters)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={formData.capacity}
+                                        onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Current Stock (Liters)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={formData.currentStock}
+                                        onChange={(e) => setFormData({ ...formData, currentStock: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="form-actions">
-                        <button type="submit" className="btn-success">
-                            <i className="fas fa-save"></i> {editingTank ? 'Update' : 'Create'} Tank
-                        </button>
+                            <div className="form-group">
+                                <label>Connected Machines</label>
+                                <div className="machines-multiselect" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #eee', maxHeight: '150px', overflowY: 'auto' }}>
+                                    {machines.map(m => (
+                                        <label key={m._id} className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', margin: 0 }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.machines.includes(m._id)}
+                                                onChange={() => handleMachineToggle(m._id)}
+                                            />
+                                            <span>{m.name}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {currentUser?.role === 'admin' && (
+                                <div className="form-group">
+                                    <label>Organisation</label>
+                                    <select
+                                        value={formData.organisation}
+                                        onChange={(e) => setFormData({ ...formData, organisation: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">Select Organisation</option>
+                                        {organizations.map(o => (
+                                            <option key={o._id} value={o._id}>{o.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            <div className="form-actions" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
+                                <button type="submit" className="btn-success">
+                                    <i className="fas fa-save"></i> {editingTank ? 'Update' : 'Create'} Tank
+                                </button>
+                                <button type="button" className="btn-secondary" onClick={resetForm}>
+                                    <i className="fas fa-times"></i> Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
             )}
 
             <div className={`filters-wrapper ${showFilters ? 'expanded' : ''}`}>

@@ -224,88 +224,93 @@ const Fuels = ({ organizationFilter }) => {
       )}
 
       {showForm && (
-        <form className="fuel-form" onSubmit={handleSubmit}>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Fuel Name:</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Unit:</label>
-              <select
-                value={formData.unit}
-                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-              >
-                <option value="liter">Liter</option>
-                <option value="gallon">Gallon</option>
-                <option value="kg">Kilogram</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Rate (per unit):</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.rate}
-                onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
-                required
-              />
-            </div>
-            {currentUser && currentUser.role === 'admin' && (
-              <div className="form-group">
-                <label>Fuel Station:</label>
-                <select
-                  value={formData.organisation}
-                  onChange={(e) => setFormData({ ...formData, organisation: e.target.value })}
-                  required
-                >
-                  <option value="">Select Fuel Station</option>
-                  {organizations.map(org => (
-                    <option key={org._id} value={org._id}>{org.name}</option>
-                  ))}
-                </select>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>{editingFuel ? 'Edit Fuel' : 'Add New Fuel'}</h2>
+            <form className="fuel-form-modal" onSubmit={handleSubmit} style={{ padding: 0, border: 'none', boxShadow: 'none', maxWidth: 'none', margin: 0 }}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Fuel Name:</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Unit:</label>
+                  <select
+                    value={formData.unit}
+                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                  >
+                    <option value="liter">Liter</option>
+                    <option value="gallon">Gallon</option>
+                    <option value="kg">Kilogram</option>
+                  </select>
+                </div>
               </div>
-            )}
-            {currentUser && currentUser.role !== 'admin' && (
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Rate (per unit):</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.rate}
+                    onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
+                    required
+                  />
+                </div>
+                {currentUser && currentUser.role === 'admin' && (
+                  <div className="form-group">
+                    <label>Fuel Station:</label>
+                    <select
+                      value={formData.organisation}
+                      onChange={(e) => setFormData({ ...formData, organisation: e.target.value })}
+                      required
+                    >
+                      <option value="">Select Fuel Station</option>
+                      {organizations.map(org => (
+                        <option key={org._id} value={org._id}>{org.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {currentUser && currentUser.role !== 'admin' && (
+                  <div className="form-group">
+                    <label>Fuel Station:</label>
+                    <input
+                      type="text"
+                      value={currentUser.organisation?.name || 'Your Fuel Station'}
+                      readOnly
+                      className="readonly-input"
+                    />
+                  </div>
+                )}
+              </div>
+
               <div className="form-group">
-                <label>Fuel Station:</label>
+                <label>Created By:</label>
                 <input
                   type="text"
-                  value={currentUser.organisation?.name || 'Your Fuel Station'}
-                  readOnly
-                  style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                  value={formData.createdby}
+                  onChange={(e) => setFormData({ ...formData, createdby: e.target.value })}
+                  required
                 />
               </div>
-            )}
-          </div>
 
-          <div className="form-group">
-            <label>Created By:</label>
-            <input
-              type="text"
-              value={formData.createdby}
-              onChange={(e) => setFormData({ ...formData, createdby: e.target.value })}
-              required
-            />
+              <div className="form-actions" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
+                <button type="submit" className="btn-success">
+                  <i className="fas fa-save"></i> {editingFuel ? 'Update' : 'Create'} Fuel
+                </button>
+                <button type="button" className="btn-secondary" onClick={resetForm}>
+                  <i className="fas fa-times"></i> Cancel
+                </button>
+              </div>
+            </form>
           </div>
-
-          <div className="form-actions">
-            <button type="submit" className="btn-success">
-              <i className="fas fa-save"></i> {editingFuel ? 'Update' : 'Create'} Fuel
-            </button>
-            <button type="button" className="btn-secondary" onClick={resetForm}>
-              <i className="fas fa-times"></i> Cancel
-            </button>
-          </div>
-        </form>
+        </div>
       )}
 
       {/* Filters Section */}

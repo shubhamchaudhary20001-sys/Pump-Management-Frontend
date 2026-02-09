@@ -260,158 +260,162 @@ const Machines = ({ organizationFilter }) => {
             )}
 
             {showForm && (
-                <form className="machine-form" onSubmit={handleSubmit}>
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Machine Name / Nozzle</label>
-                            <input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Fuel Type</label>
-                            <select
-                                value={formData.fuel}
-                                onChange={(e) => setFormData({ ...formData, fuel: e.target.value })}
-                                required
-                            >
-                                <option value="">Select Fuel</option>
-                                {fuels.map(f => (
-                                    <option key={f._id} value={f._id}>{f.name} ({f.rate}/L)</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Current Reading</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={formData.currentReading}
-                                onChange={(e) => setFormData({ ...formData, currentReading: e.target.value })}
-                                required
-                            />
-                        </div>
-                        <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                Assignments (Shift-wise)
-                                <button
-                                    type="button"
-                                    className="btn-primary"
-                                    onClick={() => setFormData({
-                                        ...formData,
-                                        assignments: [...(formData.assignments || []), { user: '', shift: '' }]
-                                    })}
-                                    style={{ padding: '6px 12px', fontSize: '11px', height: 'auto' }}
-                                >
-                                    <i className="fas fa-plus"></i> Add Assignment
-                                </button>
-                            </label>
-                            {(formData.assignments || []).map((assignment, index) => (
-                                <div key={index} className="form-row" style={{ marginTop: '10px', alignItems: 'flex-end' }}>
-                                    <div className="form-group" style={{ flex: 1 }}>
-                                        <label>Salesman</label>
-                                        <select
-                                            value={assignment.user}
-                                            onChange={(e) => {
-                                                const userId = e.target.value;
-                                                const newAssignments = [...formData.assignments];
-                                                newAssignments[index].user = userId;
-
-                                                // Find the selected user's default shift
-                                                const selectedUser = users.find(u => u._id === userId);
-                                                if (selectedUser && selectedUser.shift) {
-                                                    newAssignments[index].shift = selectedUser.shift._id || selectedUser.shift;
-                                                }
-
-                                                setFormData({ ...formData, assignments: newAssignments });
-                                            }}
-                                            required
-                                        >
-                                            <option value="">Select Salesman</option>
-                                            {users.map(u => (
-                                                <option key={u._id} value={u._id}>{u.firstname} {u.lastname}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="form-group" style={{ flex: 1 }}>
-                                        <label>Shift</label>
-                                        <select
-                                            value={assignment.shift}
-                                            onChange={(e) => {
-                                                const newAssignments = [...formData.assignments];
-                                                newAssignments[index].shift = e.target.value;
-                                                setFormData({ ...formData, assignments: newAssignments });
-                                            }}
-                                            required
-                                        >
-                                            <option value="">Select Shift</option>
-                                            {/* We need shifts here as well. I'll add them to fetchData. */}
-                                            {tanks.reduce((acc, tank) => {
-                                                // This is a bit hacky, let's just make sure shifts are available
-                                                return acc;
-                                            }, [])}
-                                            {/* Note: I'll need to fetch shifts in fetchData and add to state */}
-                                            {allShifts.map(s => (
-                                                <option key={s._id} value={s._id}>{s.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        className="btn-delete-sm"
-                                        onClick={() => {
-                                            const newAssignments = formData.assignments.filter((_, i) => i !== index);
-                                            setFormData({ ...formData, assignments: newAssignments });
-                                        }}
-                                        style={{ marginBottom: '10px' }}
-                                    >
-                                        <i className="fas fa-trash"></i>
-                                    </button>
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h2>{editingMachine ? 'Edit Machine' : 'Add New Machine'}</h2>
+                        <form className="machine-form-modal" onSubmit={handleSubmit} style={{ padding: 0, border: 'none', boxShadow: 'none', maxWidth: 'none', margin: 0 }}>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Machine Name / Nozzle</label>
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        required
+                                    />
                                 </div>
-                            ))}
-                        </div>
-                        <div className="form-group">
-                            <label>Source Tank</label>
-                            <select
-                                value={formData.tank}
-                                onChange={(e) => setFormData({ ...formData, tank: e.target.value })}
-                            >
-                                <option value="">-- No Tank Assigned --</option>
-                                {tanks.map(t => (
-                                    <option key={t._id} value={t._id}>{t.name} ({t.fuel?.name})</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+                                <div className="form-group">
+                                    <label>Fuel Type</label>
+                                    <select
+                                        value={formData.fuel}
+                                        onChange={(e) => setFormData({ ...formData, fuel: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">Select Fuel</option>
+                                        {fuels.map(f => (
+                                            <option key={f._id} value={f._id}>{f.name} ({f.rate}/L)</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
 
-                    {currentUser?.role === 'admin' && (
-                        <div className="form-group">
-                            <label>Organisation</label>
-                            <select
-                                value={formData.organisation}
-                                onChange={handleOrgChange}
-                                required
-                            >
-                                <option value="">Select Organisation</option>
-                                {organizations.map(o => (
-                                    <option key={o._id} value={o._id}>{o.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Current Reading</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={formData.currentReading}
+                                        onChange={(e) => setFormData({ ...formData, currentReading: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                                    <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        Assignments (Shift-wise)
+                                        <button
+                                            type="button"
+                                            className="btn-primary"
+                                            onClick={() => setFormData({
+                                                ...formData,
+                                                assignments: [...(formData.assignments || []), { user: '', shift: '' }]
+                                            })}
+                                            style={{ padding: '6px 12px', fontSize: '11px', height: 'auto' }}
+                                        >
+                                            <i className="fas fa-plus"></i> Add Assignment
+                                        </button>
+                                    </label>
+                                    <div className="assignments-list" style={{ marginTop: '10px' }}>
+                                        {(formData.assignments || []).map((assignment, index) => (
+                                            <div key={index} className="form-row" style={{ marginTop: '10px', alignItems: 'flex-end', background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #eee' }}>
+                                                <div className="form-group" style={{ flex: 1 }}>
+                                                    <label>Salesman</label>
+                                                    <select
+                                                        value={assignment.user}
+                                                        onChange={(e) => {
+                                                            const userId = e.target.value;
+                                                            const newAssignments = [...formData.assignments];
+                                                            newAssignments[index].user = userId;
 
-                    <div className="form-actions">
-                        <button type="submit" className="btn-success">
-                            <i className="fas fa-save"></i> {editingMachine ? 'Update' : 'Create'} Machine
-                        </button>
+                                                            // Find the selected user's default shift
+                                                            const selectedUser = users.find(u => u._id === userId);
+                                                            if (selectedUser && selectedUser.shift) {
+                                                                newAssignments[index].shift = selectedUser.shift._id || selectedUser.shift;
+                                                            }
+
+                                                            setFormData({ ...formData, assignments: newAssignments });
+                                                        }}
+                                                        required
+                                                    >
+                                                        <option value="">Select Salesman</option>
+                                                        {users.map(u => (
+                                                            <option key={u._id} value={u._id}>{u.firstname} {u.lastname}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div className="form-group" style={{ flex: 1 }}>
+                                                    <label>Shift</label>
+                                                    <select
+                                                        value={assignment.shift}
+                                                        onChange={(e) => {
+                                                            const newAssignments = [...formData.assignments];
+                                                            newAssignments[index].shift = e.target.value;
+                                                            setFormData({ ...formData, assignments: newAssignments });
+                                                        }}
+                                                        required
+                                                    >
+                                                        <option value="">Select Shift</option>
+                                                        {allShifts.map(s => (
+                                                            <option key={s._id} value={s._id}>{s.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    className="btn-delete-sm"
+                                                    onClick={() => {
+                                                        const newAssignments = formData.assignments.filter((_, i) => i !== index);
+                                                        setFormData({ ...formData, assignments: newAssignments });
+                                                    }}
+                                                    style={{ marginBottom: '10px', borderColor: '#fee2e2' }}
+                                                >
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Source Tank</label>
+                                    <select
+                                        value={formData.tank}
+                                        onChange={(e) => setFormData({ ...formData, tank: e.target.value })}
+                                    >
+                                        <option value="">-- No Tank Assigned --</option>
+                                        {tanks.map(t => (
+                                            <option key={t._id} value={t._id}>{t.name} ({t.fuel?.name})</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {currentUser?.role === 'admin' && (
+                                <div className="form-group">
+                                    <label>Organisation</label>
+                                    <select
+                                        value={formData.organisation}
+                                        onChange={handleOrgChange}
+                                        required
+                                    >
+                                        <option value="">Select Organisation</option>
+                                        {organizations.map(o => (
+                                            <option key={o._id} value={o._id}>{o.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            <div className="form-actions" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
+                                <button type="submit" className="btn-success">
+                                    <i className="fas fa-save"></i> {editingMachine ? 'Update' : 'Create'} Machine
+                                </button>
+                                <button type="button" className="btn-secondary" onClick={resetForm}>
+                                    <i className="fas fa-times"></i> Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
             )}
 
             <div className={`filters-wrapper ${showFilters ? 'expanded' : ''}`}>

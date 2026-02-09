@@ -529,156 +529,161 @@ const Transactions = ({ organizationFilter }) => {
       </div>
 
       {showForm && (
-        <form className="transaction-form" onSubmit={handleSubmit}>
-          <div className="form-row">
-            {currentUser && ['admin', 'manager', 'salesman', 'purchaser'].includes(currentUser.role) && (
-              <div className="form-group">
-                <label>Fuel:</label>
-                <select
-                  value={formData.fuel}
-                  onChange={(e) => setFormData({ ...formData, fuel: e.target.value })}
-                  required
-                >
-                  <option value="">Select Fuel</option>
-                  {fuels.map(fuel => (
-                    <option key={fuel._id} value={fuel._id}>{fuel.name} (₹{fuel.rate}/{fuel.unit})</option>
-                  ))}
-                </select>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>{editingTransaction ? 'Edit Fuel Request' : 'Add New Fuel Request'}</h2>
+            <form className="transaction-form-modal" onSubmit={handleSubmit} style={{ padding: 0, border: 'none', boxShadow: 'none', maxWidth: 'none', margin: 0 }}>
+              <div className="form-row">
+                {currentUser && ['admin', 'manager', 'salesman', 'purchaser'].includes(currentUser.role) && (
+                  <div className="form-group">
+                    <label>Fuel:</label>
+                    <select
+                      value={formData.fuel}
+                      onChange={(e) => setFormData({ ...formData, fuel: e.target.value })}
+                      required
+                    >
+                      <option value="">Select Fuel</option>
+                      {fuels.map(fuel => (
+                        <option key={fuel._id} value={fuel._id}>{fuel.name} (₹{fuel.rate}/{fuel.unit})</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <div className="form-group">
+                  <label>Quantity:</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                    required
+                  />
+                </div>
               </div>
-            )}
-            <div className="form-group">
-              <label>Quantity:</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                required
-              />
-            </div>
-          </div>
 
-          <div className="form-row">
-            {currentUser && ['admin', 'manager'].includes(currentUser.role) && (
-              <div className="form-group">
-                <label>User:</label>
-                <select
-                  value={formData.user}
-                  onChange={(e) => setFormData({ ...formData, user: e.target.value })}
-                  required
-                >
-                  <option value="">Select User</option>
-                  {users.map(user => (
-                    <option key={user._id} value={user._id}>{user.firstname} {user.lastname}</option>
-                  ))}
-                </select>
+              <div className="form-row">
+                {currentUser && ['admin', 'manager'].includes(currentUser.role) && (
+                  <div className="form-group">
+                    <label>User:</label>
+                    <select
+                      value={formData.user}
+                      onChange={(e) => setFormData({ ...formData, user: e.target.value })}
+                      required
+                    >
+                      <option value="">Select User</option>
+                      {users.map(user => (
+                        <option key={user._id} value={user._id}>{user.firstname} {user.lastname}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {currentUser && currentUser.role === 'admin' && (
+                  <div className="form-group">
+                    <label>Fuel Station:</label>
+                    <select
+                      value={formData.organisation}
+                      onChange={(e) => setFormData({ ...formData, organisation: e.target.value })}
+                      required
+                    >
+                      <option value="">Select Fuel Station</option>
+                      {organizations.map(org => (
+                        <option key={org._id} value={org._id}>{org.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {currentUser && currentUser.role !== 'admin' && (
+                  <div className="form-group">
+                    <label>Fuel Station:</label>
+                    <input
+                      type="text"
+                      value={currentUser.organisation?.name || 'Your Fuel Station'}
+                      readOnly
+                      className="readonly-input"
+                    />
+                  </div>
+                )}
               </div>
-            )}
-            {currentUser && currentUser.role === 'admin' && (
-              <div className="form-group">
-                <label>Fuel Station:</label>
-                <select
-                  value={formData.organisation}
-                  onChange={(e) => setFormData({ ...formData, organisation: e.target.value })}
-                  required
-                >
-                  <option value="">Select Fuel Station</option>
-                  {organizations.map(org => (
-                    <option key={org._id} value={org._id}>{org.name}</option>
-                  ))}
-                </select>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Vehicle Type:</label>
+                  <input
+                    type="text"
+                    value={formData.vehicleType}
+                    onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
+                    placeholder="e.g. Truck, Car, Bike"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Vehicle Number:</label>
+                  <input
+                    type="text"
+                    value={formData.vehicleNumber}
+                    onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value })}
+                    placeholder="e.g. ABC-1234"
+                  />
+                </div>
               </div>
-            )}
-            {currentUser && currentUser.role !== 'admin' && (
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Transaction Date:</label>
+                  {currentUser && currentUser.role === 'purchaser' ? (
+                    <input
+                      type="text"
+                      value={new Date().toLocaleDateString()}
+                      readOnly
+                      className="readonly-input"
+                    />
+                  ) : (
+                    <input
+                      type="date"
+                      value={formData.transactionDate}
+                      onChange={(e) => setFormData({ ...formData, transactionDate: e.target.value })}
+                    />
+                  )}
+                </div>
+                <div className="form-group">
+                  <label>Created By:</label>
+                  {currentUser && currentUser.role === 'purchaser' ? (
+                    <input
+                      type="text"
+                      value={`${currentUser.firstname} ${currentUser.lastname}`}
+                      readOnly
+                      className="readonly-input"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={formData.createdby}
+                      onChange={(e) => setFormData({ ...formData, createdby: e.target.value })}
+                      required
+                    />
+                  )}
+                </div>
+              </div>
+
               <div className="form-group">
-                <label>Fuel Station:</label>
-                <input
-                  type="text"
-                  value={currentUser.organisation?.name || 'Your Fuel Station'}
-                  readOnly
-                  style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
+                <label>Notes:</label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  rows="2"
                 />
               </div>
-            )}
-          </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Vehicle Type:</label>
-              <input
-                type="text"
-                value={formData.vehicleType}
-                onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
-                placeholder="e.g. Truck, Car, Bike"
-              />
-            </div>
-            <div className="form-group">
-              <label>Vehicle Number:</label>
-              <input
-                type="text"
-                value={formData.vehicleNumber}
-                onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value })}
-                placeholder="e.g. ABC-1234"
-              />
-            </div>
+              <div className="form-actions" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
+                <button type="submit" className="btn-success">
+                  <i className="fas fa-save"></i> {editingTransaction ? 'Update' : 'Create'} Request
+                </button>
+                <button type="button" className="btn-secondary" onClick={resetForm}>
+                  <i className="fas fa-times"></i> Cancel
+                </button>
+              </div>
+            </form>
           </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Transaction Date:</label>
-              {currentUser && currentUser.role === 'purchaser' ? (
-                <input
-                  type="text"
-                  value={new Date().toLocaleDateString()}
-                  readOnly
-                  style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
-                />
-              ) : (
-                <input
-                  type="date"
-                  value={formData.transactionDate}
-                  onChange={(e) => setFormData({ ...formData, transactionDate: e.target.value })}
-                />
-              )}
-            </div>
-            <div className="form-group">
-              <label>Created By:</label>
-              {currentUser && currentUser.role === 'purchaser' ? (
-                <input
-                  type="text"
-                  value={`${currentUser.firstname} ${currentUser.lastname}`}
-                  readOnly
-                  style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
-                />
-              ) : (
-                <input
-                  type="text"
-                  value={formData.createdby}
-                  onChange={(e) => setFormData({ ...formData, createdby: e.target.value })}
-                  required
-                />
-              )}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Notes:</label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              rows="3"
-            />
-          </div>
-
-          <div className="form-actions">
-            <button type="submit" className="btn-success">
-              <i className="fas fa-save"></i> {editingTransaction ? 'Update' : 'Create'} Fuel Request
-            </button>
-            <button type="button" className="btn-secondary" onClick={resetForm}>
-              <i className="fas fa-times"></i> Cancel
-            </button>
-          </div>
-        </form>
+        </div>
       )}
 
       {/* Summary Stats Section */}
@@ -1006,16 +1011,16 @@ const Transactions = ({ organizationFilter }) => {
 
       {/* Machine Selection Modal */}
       {showMachineModal && (
-        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div className="modal-content" style={{ backgroundColor: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
-            <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '450px' }}>
+            <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b' }}>
               <i className="fas fa-gears" style={{ color: '#0ea5e9' }}></i> Select Your Machine
             </h3>
-            <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '20px' }}>
+            <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '20px', lineHeight: '1.5' }}>
               Please select the machine you are currently operating to fulfill this fuel request.
             </p>
             <div className="form-group" style={{ marginBottom: '25px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Operating Machine:</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569' }}>Operating Machine:</label>
               <select
                 value={selectedMachine}
                 onChange={(e) => setSelectedMachine(e.target.value)}
@@ -1028,18 +1033,18 @@ const Transactions = ({ organizationFilter }) => {
                 ))}
               </select>
             </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div className="form-actions" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
               <button
-                className="btn-primary"
+                className="btn-success"
                 onClick={submitAssign}
-                style={{ flex: 1, padding: '12px', borderRadius: '8px', fontWeight: '600' }}
+                style={{ flex: 1 }}
               >
                 Confirm & Assign
               </button>
               <button
                 className="btn-secondary"
                 onClick={() => { setShowMachineModal(false); setSelectedMachine(''); setAssigningTransactionId(null); }}
-                style={{ flex: 1, padding: '12px', borderRadius: '8px', fontWeight: '600' }}
+                style={{ flex: 1 }}
               >
                 Cancel
               </button>

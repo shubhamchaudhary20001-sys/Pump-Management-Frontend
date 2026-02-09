@@ -264,106 +264,109 @@ const Testing = ({ organizationFilter }) => {
             )}
 
             {showForm && (
-                <form onSubmit={handleSubmit} className="testing-form fade-in">
-                    <div className="form-row">
-                        <div className="form-group half">
-                            <label>Date *</label>
-                            <input
-                                type="date"
-                                name="date"
-                                value={formData.date}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-group half">
-                            <label>Tank *</label>
-                            <select
-                                name="tank"
-                                value={formData.tank}
-                                onChange={handleChange}
-                                required
-                            >
-                                <option value="">Select Tank</option>
-                                {tanks.map(tank => (
-                                    <option key={tank._id} value={tank._id}>
-                                        {tank.name} (Stock: {tank.currentStock}L / {tank.capacity}L)
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h2>{editingTesting ? 'Edit Fuel Testing' : 'Add New Fuel Testing'}</h2>
+                        <form onSubmit={handleSubmit} className="testing-form-modal" style={{ padding: 0, border: 'none', boxShadow: 'none', maxWidth: 'none', margin: 0 }}>
+                            <div className="form-row">
+                                <div className="form-group half">
+                                    <label>Date *</label>
+                                    <input
+                                        type="date"
+                                        name="date"
+                                        value={formData.date}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group half">
+                                    <label>Tank *</label>
+                                    <select
+                                        name="tank"
+                                        value={formData.tank}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="">Select Tank</option>
+                                        {tanks.map(tank => (
+                                            <option key={tank._id} value={tank._id}>
+                                                {tank.name} (Stock: {tank.currentStock}L / {tank.capacity}L)
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
 
-                    <div className="form-row">
-                        <div className="form-group half">
-                            <label>Machine *</label>
-                            <select
-                                name="machine"
-                                value={formData.machine}
-                                onChange={handleChange}
-                                required
-                                disabled={!formData.tank}
-                            >
-                                <option value="">Select Machine</option>
-                                {machines.map(machine => (
-                                    <option key={machine._id} value={machine._id}>
-                                        {machine.name} ({machine.fuel?.name})
-                                    </option>
-                                ))}
-                            </select>
-                            {!formData.tank && <small className="form-text">Select a tank first</small>}
-                        </div>
-                        <div className="form-group half">
-                            <label>Shift *</label>
-                            <select
-                                name="shift"
-                                value={formData.shift}
-                                onChange={handleChange}
-                                required
-                            >
-                                <option value="">Select Shift</option>
-                                {shifts.map(shift => (
-                                    <option key={shift._id} value={shift._id}>{shift.name} ({shift.startTime} - {shift.endTime})</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="form-group half">
-                            <label>Test Amount (Liters) *</label>
-                            <input
-                                type="number"
-                                name="testAmount"
-                                value={formData.testAmount}
-                                onChange={handleChange}
-                                placeholder="e.g. 2.5"
-                                min="0"
-                                step="0.01"
-                                required
-                            />
-                        </div>
-                    </div>
+                            <div className="form-row">
+                                <div className="form-group half">
+                                    <label>Machine *</label>
+                                    <select
+                                        name="machine"
+                                        value={formData.machine}
+                                        onChange={handleChange}
+                                        required
+                                        disabled={!formData.tank}
+                                    >
+                                        <option value="">Select Machine</option>
+                                        {machines.map(machine => (
+                                            <option key={machine._id} value={machine._id}>
+                                                {machine.name} ({machine.fuel?.name})
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {!formData.tank && <small className="form-text" style={{ color: '#666' }}>Select a tank first</small>}
+                                </div>
+                                <div className="form-group half">
+                                    <label>Shift *</label>
+                                    <select
+                                        name="shift"
+                                        value={formData.shift}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="">Select Shift</option>
+                                        {shifts.map(shift => (
+                                            <option key={shift._id} value={shift._id}>{shift.name} ({shift.startTime} - {shift.endTime})</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group half">
+                                    <label>Test Amount (L) *</label>
+                                    <input
+                                        type="number"
+                                        name="testAmount"
+                                        value={formData.testAmount}
+                                        onChange={handleChange}
+                                        placeholder="e.g. 2.5"
+                                        min="0"
+                                        step="0.01"
+                                        required
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="form-group">
-                        <label>Notes</label>
-                        <input
-                            type="text"
-                            name="notes"
-                            value={formData.notes}
-                            onChange={handleChange}
-                            placeholder="Optional notes about the test"
-                        />
-                    </div>
+                            <div className="form-group">
+                                <label>Notes</label>
+                                <input
+                                    type="text"
+                                    name="notes"
+                                    value={formData.notes}
+                                    onChange={handleChange}
+                                    placeholder="Optional notes about the test"
+                                />
+                            </div>
 
-                    <div className="form-actions">
-                        <button type="submit" className="btn-primary">
-                            <i className="fas fa-save"></i> {editingTesting ? 'Update Testing' : 'Add Testing'}
-                        </button>
-                        {editingTesting && (
-                            <button type="button" className="btn-secondary" onClick={resetForm}>
-                                Cancel
-                            </button>
-                        )}
+                            <div className="form-actions" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
+                                <button type="submit" className="btn-success">
+                                    <i className="fas fa-save"></i> {editingTesting ? 'Update Testing' : 'Add Testing'}
+                                </button>
+                                <button type="button" className="btn-secondary" onClick={resetForm}>
+                                    <i className="fas fa-times"></i> Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
             )}
 
             <div className={`filters-wrapper ${showFilters ? 'expanded' : ''}`}>

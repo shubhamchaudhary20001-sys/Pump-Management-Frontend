@@ -170,94 +170,97 @@ const Shifts = ({ organizationFilter }) => {
             )}
 
             {showForm && (
-                <form onSubmit={handleSubmit} className="shift-form fade-in">
-                    <div className="form-row">
-                        <div className="form-group half">
-                            <label>Shift Name</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="e.g. Morning Shift"
-                                required
-                            />
-                        </div>
-                        <div className="form-group half">
-                            <label>Status</label>
-                            <div className="checkbox-group">
-                                <input
-                                    type="checkbox"
-                                    id="isactive"
-                                    name="isactive"
-                                    checked={formData.isactive}
-                                    onChange={handleChange}
-                                />
-                                <label htmlFor="isactive">Active</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group half">
-                            <label>Start Time</label>
-                            <input
-                                type="time"
-                                name="startTime"
-                                value={formData.startTime}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-group half">
-                            <label>End Time</label>
-                            <input
-                                type="time"
-                                name="endTime"
-                                value={formData.endTime}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <label>Assign Salesmen (Optional)</label>
-                        <div className="salesmen-checkbox-list">
-                            {salesmen.length === 0 ? (
-                                <p className="no-data-sm">No salesmen available to assign.</p>
-                            ) : (
-                                salesmen.map(s => (
-                                    <div key={s._id} className="salesman-checkbox-item">
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h2>{editingShift ? 'Edit Shift' : 'Add New Shift'}</h2>
+                        <form onSubmit={handleSubmit} className="shift-form-modal" style={{ padding: 0, border: 'none', boxShadow: 'none', maxWidth: 'none', margin: 0 }}>
+                            <div className="form-row">
+                                <div className="form-group half">
+                                    <label>Shift Name</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        placeholder="e.g. Morning Shift"
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group half">
+                                    <label>Status</label>
+                                    <div className="checkbox-group" style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '10px' }}>
                                         <input
                                             type="checkbox"
-                                            id={`salesman-${s._id}`}
-                                            checked={formData.assignedSalesmen.includes(s._id)}
-                                            onChange={() => handleCheckboxChange(s._id)}
+                                            id="isactive"
+                                            name="isactive"
+                                            checked={formData.isactive}
+                                            onChange={handleChange}
                                         />
-                                        <label htmlFor={`salesman-${s._id}`}>
-                                            {s.firstname} {s.lastname} <small>({s.username})</small>
-                                        </label>
+                                        <label htmlFor="isactive" style={{ marginBottom: 0 }}>Active</label>
                                     </div>
-                                ))
-                            )}
-                        </div>
-                        <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>
-                            {formData.assignedSalesmen.length} salesmen selected. They will have this shift auto-selected when they log collections.
-                        </small>
-                    </div>
+                                </div>
+                            </div>
 
-                    <div className="form-actions">
-                        <button type="submit" className="btn-primary">
-                            <i className="fas fa-save"></i> {editingShift ? 'Update Shift' : 'Create Shift'}
-                        </button>
-                        {editingShift && (
-                            <button type="button" className="btn-secondary" onClick={resetForm}>
-                                Cancel
-                            </button>
-                        )}
+                            <div className="form-row">
+                                <div className="form-group half">
+                                    <label>Start Time</label>
+                                    <input
+                                        type="time"
+                                        name="startTime"
+                                        value={formData.startTime}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group half">
+                                    <label>End Time</label>
+                                    <input
+                                        type="time"
+                                        name="endTime"
+                                        value={formData.endTime}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Assign Salesmen (Optional)</label>
+                                <div className="salesmen-checkbox-list" style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #e2e8f0', padding: '12px', borderRadius: '8px', background: '#f8fafc' }}>
+                                    {salesmen.length === 0 ? (
+                                        <p className="no-data-sm">No salesmen available to assign.</p>
+                                    ) : (
+                                        salesmen.map(s => (
+                                            <div key={s._id} className="salesman-checkbox-item" style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    id={`salesman-${s._id}`}
+                                                    checked={formData.assignedSalesmen.includes(s._id)}
+                                                    onChange={() => handleCheckboxChange(s._id)}
+                                                />
+                                                <label htmlFor={`salesman-${s._id}`} style={{ marginBottom: 0, cursor: 'pointer' }}>
+                                                    {s.firstname} {s.lastname} <small>({s.username})</small>
+                                                </label>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                                <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>
+                                    {formData.assignedSalesmen.length} salesmen selected.
+                                </small>
+                            </div>
+
+                            <div className="form-actions" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
+                                <button type="submit" className="btn-success">
+                                    <i className="fas fa-save"></i> {editingShift ? 'Update Shift' : 'Create Shift'}
+                                </button>
+                                <button type="button" className="btn-secondary" onClick={resetForm}>
+                                    <i className="fas fa-times"></i> Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
             )}
 
             <div className={`filters-wrapper ${showFilters ? 'expanded' : ''}`}>

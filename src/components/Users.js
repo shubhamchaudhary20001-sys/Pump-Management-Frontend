@@ -36,7 +36,7 @@ const Users = ({ organizationFilter }) => {
     organisation: '',
     username: '',
     password: '',
-    assignedMachineId: '',
+    assignedMachineIds: [], // Fixed: pluralized and initialized as empty array
     shift: ''
   });
 
@@ -187,6 +187,7 @@ const Users = ({ organizationFilter }) => {
     }
   };
 
+
   const resetForm = () => {
     setFormData({
       firstname: '',
@@ -235,166 +236,181 @@ const Users = ({ organizationFilter }) => {
       </div>
 
       {showForm && (
-        <form className="user-form" onSubmit={handleSubmit}>
-          <div className="form-row">
-            <div className="form-group">
-              <label>First Name:</label>
-              <input
-                type="text"
-                value={formData.firstname}
-                onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Last Name:</label>
-              <input
-                type="text"
-                value={formData.lastname}
-                onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Email:</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Mobile:</label>
-              <input
-                type="text"
-                value={formData.mobileno}
-                onChange={(e) => setFormData({ ...formData, mobileno: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Username:</label>
-              <input
-                type="text"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Role:</label>
-              <select
-                value={formData.roleid}
-                onChange={(e) => setFormData({ ...formData, roleid: e.target.value })}
-              >
-                <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-                <option value="purchaser">Purchaser</option>
-                <option value="salesman">Salesman</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Default Shift:</label>
-              <select
-                value={formData.shift}
-                onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
-              >
-                <option value="">No Default Shift</option>
-                {shifts.map(shift => (
-                  <option key={shift._id} value={shift._id}>{shift.name} ({shift.startTime} - {shift.endTime})</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Machine Assignment for Salesman or Manager */}
-          {
-            (formData.roleid === 'salesman' || formData.roleid === 'manager') && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>{editingUser ? 'Edit User' : 'Add New User'}</h2>
+            <form className="user-form-modal" onSubmit={handleSubmit} style={{ padding: 0, border: 'none', boxShadow: 'none', maxWidth: 'none', margin: 0 }}>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Assign Machines:</label>
-                  <div className="checkbox-group" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', maxHeight: '200px', overflowY: 'auto' }}>
-                    {machines
-                      .map(m => {
-                        const isAssigned = formData.assignedMachineIds.includes(m._id);
-                        return (
-                          <div key={m._id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <input
-                              type="checkbox"
-                              id={`machine-${m._id}`}
-                              checked={isAssigned}
-                              onChange={(e) => {
-                                const newIds = e.target.checked
-                                  ? [...formData.assignedMachineIds, m._id]
-                                  : formData.assignedMachineIds.filter(id => id !== m._id);
-                                setFormData({ ...formData, assignedMachineIds: newIds });
-                              }}
-                            />
-                            <label htmlFor={`machine-${m._id}`} style={{ marginBottom: 0, cursor: 'pointer', fontSize: '13px' }}>
-                              {m.name} ({m.fuel?.name})
-                            </label>
-                          </div>
-                        );
-                      })
-                    }
-                  </div>
-                  <small className="form-text text-muted">A user can be assigned to multiple machines.</small>
+                  <label>First Name:</label>
+                  <input
+                    type="text"
+                    value={formData.firstname}
+                    onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Last Name:</label>
+                  <input
+                    type="text"
+                    value={formData.lastname}
+                    onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
+                    required
+                  />
                 </div>
               </div>
-            )
-          }
 
-          {/* Only show organization dropdown for admin users */}
-          {currentUser?.role === 'admin' && (
-            <div className="form-row">
-              <div className="form-group">
-                <label>Organization:</label>
-                <select
-                  value={formData.organisation}
-                  onChange={(e) => setFormData({ ...formData, organisation: e.target.value })}
-                >
-                  <option value="">Select Organization (leave empty for auto-creation)</option>
-                  {organizations.map(org => (
-                    <option key={org._id} value={org._id}>{org.name}</option>
-                  ))}
-                </select>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Email:</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Mobile:</label>
+                  <input
+                    type="text"
+                    value={formData.mobileno}
+                    onChange={(e) => setFormData({ ...formData, mobileno: e.target.value })}
+                    required
+                  />
+                </div>
               </div>
-            </div>
-          )}
 
-          {
-            !editingUser && (
-              <div className="form-group">
-                <label>Password:</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required={!editingUser}
-                />
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Username:</label>
+                  <input
+                    type="text"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Role:</label>
+                  <select
+                    value={formData.roleid}
+                    onChange={(e) => setFormData({ ...formData, roleid: e.target.value })}
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="manager">Manager</option>
+                    <option value="purchaser">Purchaser</option>
+                    <option value="salesman">Salesman</option>
+                  </select>
+                </div>
               </div>
-            )
-          }
 
-          <div className="form-actions">
-            <button type="submit" className="btn-success">
-              <i className="fas fa-save"></i> {editingUser ? 'Update' : 'Create'} User
-            </button>
-            <button type="button" className="btn-secondary" onClick={resetForm}>
-              <i className="fas fa-times"></i> Cancel
-            </button>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Default Shift:</label>
+                  <select
+                    value={formData.shift}
+                    onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
+                  >
+                    <option value="">No Default Shift</option>
+                    {shifts.map(shift => (
+                      <option key={shift._id} value={shift._id}>{shift.name} ({shift.startTime} - {shift.endTime})</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Machine Assignment for Salesman or Manager */}
+              {
+                (formData.roleid === 'salesman' || formData.roleid === 'manager') && (
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Assign Machines:</label>
+                      <div className="checkbox-group" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', maxHeight: '200px', overflowY: 'auto' }}>
+                        {machines
+                          .map(m => {
+                            const isAssigned = formData.assignedMachineIds.includes(m._id);
+                            return (
+                              <div key={m._id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <input
+                                  type="checkbox"
+                                  id={`machine-${m._id}`}
+                                  checked={isAssigned}
+                                  onChange={(e) => {
+                                    const newIds = e.target.checked
+                                      ? [...formData.assignedMachineIds, m._id]
+                                      : formData.assignedMachineIds.filter(id => id !== m._id);
+                                    setFormData({ ...formData, assignedMachineIds: newIds });
+                                  }}
+                                />
+                                <label htmlFor={`machine-${m._id}`} style={{ marginBottom: 0, cursor: 'pointer', fontSize: '13px' }}>
+                                  {m.name} ({m.fuel?.name})
+                                </label>
+                              </div>
+                            );
+                          })
+                        }
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+
+              {/* Only show organization dropdown for admin users */}
+              {currentUser?.role === 'admin' && (
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Organization:</label>
+                    <select
+                      value={formData.organisation}
+                      onChange={(e) => setFormData({ ...formData, organisation: e.target.value })}
+                    >
+                      <option value="">Select Organization (leave empty for auto-creation)</option>
+                      {organizations.map(org => (
+                        <option key={org._id} value={org._id}>{org.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {editingUser ? (
+                <div className="form-group" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f59e0b' }}>
+                    <i className="fas fa-key"></i> Reset Password (optional)
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="Enter new password to reset"
+                  />
+                  <small style={{ color: '#64748b' }}>Leave blank to keep current password. Minimum 6 characters.</small>
+                </div>
+              ) : (
+                <div className="form-group" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
+                  <label>Password:</label>
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="form-actions" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
+                <button type="submit" className="btn-success">
+                  <i className="fas fa-save"></i> {editingUser ? 'Update' : 'Create'} User
+                </button>
+                <button type="button" className="btn-secondary" onClick={resetForm}>
+                  <i className="fas fa-times"></i> Cancel
+                </button>
+              </div>
+            </form>
           </div>
-        </form >
+        </div>
       )}
 
       <div className={`filters-wrapper ${showFilters ? 'expanded' : ''}`}>
@@ -575,7 +591,8 @@ const Users = ({ organizationFilter }) => {
           </div>
         )}
       </div>
-    </div >
+
+    </div>
   );
 };
 

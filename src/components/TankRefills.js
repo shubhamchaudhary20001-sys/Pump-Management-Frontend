@@ -237,101 +237,103 @@ const TankRefills = ({ organizationFilter }) => {
             )}
 
             {showForm && (
-                <form onSubmit={handleSubmit} className="refill-form fade-in">
-                    <div className="form-row">
-                        <div className="form-group half">
-                            <label>Tank *</label>
-                            <select
-                                name="tank"
-                                value={formData.tank}
-                                onChange={handleChange}
-                                required
-                            >
-                                <option value="">Select Tank</option>
-                                {tanks.map(tank => (
-                                    <option key={tank._id} value={tank._id}>
-                                        {tank.name} (Current: {tank.currentStock}L / {tank.capacity}L)
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="form-group half">
-                            <label>Refill Date *</label>
-                            <input
-                                type="date"
-                                name="refillDate"
-                                value={formData.refillDate}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                    </div>
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h2>{editingRefill ? 'Edit Tank Refill' : 'Add New Tank Refill'}</h2>
+                        <form onSubmit={handleSubmit} className="tank-refill-form-modal" style={{ padding: 0, border: 'none', boxShadow: 'none', maxWidth: 'none', margin: 0 }}>
+                            <div className="form-row">
+                                <div className="form-group half">
+                                    <label>Tank *</label>
+                                    <select
+                                        name="tank"
+                                        value={formData.tank}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="">Select Tank</option>
+                                        {tanks.map(tank => (
+                                            <option key={tank._id} value={tank._id}>
+                                                {tank.name} (Current: {tank.currentStock}L / {tank.capacity}L)
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group half">
+                                    <label>Refill Date *</label>
+                                    <input
+                                        type="date"
+                                        name="refillDate"
+                                        value={formData.refillDate}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="form-row">
-                        <div className="form-group half">
-                            <label>Quantity Added (Liters) *</label>
-                            <input
-                                type="number"
-                                name="quantityAdded"
-                                value={formData.quantityAdded}
-                                onChange={handleChange}
-                                placeholder="e.g. 5000"
-                                min="0"
-                                step="0.01"
-                                required
-                            />
-                        </div>
-                        <div className="form-group half">
-                            <label>Cost Per Liter</label>
-                            <input
-                                type="number"
-                                name="costPerLiter"
-                                value={formData.costPerLiter}
-                                onChange={handleChange}
-                                placeholder="e.g. 95.50"
-                                min="0"
-                                step="0.01"
-                            />
-                        </div>
-                    </div>
+                            <div className="form-row">
+                                <div className="form-group half">
+                                    <label>Quantity Added (L) *</label>
+                                    <input
+                                        type="number"
+                                        name="quantityAdded"
+                                        value={formData.quantityAdded}
+                                        onChange={handleChange}
+                                        placeholder="e.g. 5000"
+                                        min="0"
+                                        step="0.01"
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group half">
+                                    <label>Cost Per Liter</label>
+                                    <input
+                                        type="number"
+                                        name="costPerLiter"
+                                        value={formData.costPerLiter}
+                                        onChange={handleChange}
+                                        placeholder="e.g. 95.50"
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                </div>
+                            </div>
 
+                            <div className="form-row">
+                                <div className="form-group half">
+                                    <label>Total Cost</label>
+                                    <input
+                                        type="number"
+                                        name="totalCost"
+                                        value={formData.totalCost}
+                                        onChange={handleChange}
+                                        placeholder="Auto-calculated"
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <div className="form-group half">
+                                    <label>Notes</label>
+                                    <input
+                                        type="text"
+                                        name="notes"
+                                        value={formData.notes}
+                                        onChange={handleChange}
+                                        placeholder="Additional notes"
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="form-row">
-                        <div className="form-group half">
-                            <label>Total Cost</label>
-                            <input
-                                type="number"
-                                name="totalCost"
-                                value={formData.totalCost}
-                                onChange={handleChange}
-                                placeholder="Auto-calculated or enter manually"
-                                min="0"
-                                step="0.01"
-                            />
-                        </div>
-                        <div className="form-group half">
-                            <label>Notes</label>
-                            <input
-                                type="text"
-                                name="notes"
-                                value={formData.notes}
-                                onChange={handleChange}
-                                placeholder="Additional notes"
-                            />
-                        </div>
+                            <div className="form-actions" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
+                                <button type="submit" className="btn-success">
+                                    <i className="fas fa-save"></i> {editingRefill ? 'Update Refill' : 'Add Refill'}
+                                </button>
+                                <button type="button" className="btn-secondary" onClick={resetForm}>
+                                    <i className="fas fa-times"></i> Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
-
-                    <div className="form-actions">
-                        <button type="submit" className="btn-primary">
-                            <i className="fas fa-save"></i> {editingRefill ? 'Update Refill' : 'Add Refill'}
-                        </button>
-                        {editingRefill && (
-                            <button type="button" className="btn-secondary" onClick={resetForm}>
-                                Cancel
-                            </button>
-                        )}
-                    </div>
-                </form>
+                </div>
             )}
 
             <div className={`filters-wrapper ${showFilters ? 'expanded' : ''}`}>

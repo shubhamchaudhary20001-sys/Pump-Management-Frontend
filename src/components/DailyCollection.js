@@ -527,278 +527,282 @@ const DailyCollection = ({ organizationFilter }) => {
             )}
 
             {showForm && (
-                <form onSubmit={handleSubmit} className="daily-collection-form fade-in">
-                    <div className="form-row">
-                        <div className="form-group half">
-                            <label>Date</label>
-                            <input
-                                type="date"
-                                name="date"
-                                value={formData.date}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-group half">
-                            <label>Machine</label>
-                            <select
-                                name="machine"
-                                value={selectedMachine}
-                                onChange={handleMachineChange}
-                                required
-                            >
-                                <option value="">Select Machine</option>
-                                {machines.map(machine => (
-                                    <option key={machine._id} value={machine._id}>
-                                        {machine.name} ({machine.fuel?.name})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="form-group half">
-                            <label>Shift</label>
-                            <select
-                                name="shift"
-                                value={formData.shift}
-                                onChange={handleChange}
-                                required
-                            >
-                                <option value="">Select Shift</option>
-                                {shifts.map(shift => (
-                                    <option key={shift._id} value={shift._id}>{shift.name} ({shift.startTime} - {shift.endTime})</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group third">
-                            <label>Start Reading</label>
-                            <input
-                                type="number"
-                                name="startReading"
-                                value={formData.startReading}
-                                readOnly
-                                className="readonly-input"
-                            />
-                        </div>
-                        <div className="form-group third">
-                            <label>End Reading</label>
-                            <input
-                                type="number"
-                                name="endReading"
-                                value={formData.endReading}
-                                onChange={handleChange}
-                                required
-                                min="0"
-                                step="0.01"
-                            />
-                        </div>
-                        <div className="form-group third">
-                            <label>Total Sale (Ltrs)</label>
-                            <input
-                                type="number"
-                                value={formData.totalSale}
-                                readOnly
-                                className="readonly-input"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group third">
-                            <label>Rate (₹)</label>
-                            <input
-                                type="number"
-                                name="rate"
-                                value={formData.rate}
-                                onChange={handleChange}
-                                readOnly={JSON.parse(localStorage.getItem('user'))?.role !== 'manager'}
-                                className={JSON.parse(localStorage.getItem('user'))?.role !== 'manager' ? "readonly-input" : ""}
-                            />
-                        </div>
-                        <div className="form-group third">
-                            <label>Testing Deduction (₹)</label>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', height: '42px' }}>
-                                <div className="checkbox-group" style={{ margin: 0 }}>
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h2>{editingCollection ? 'Edit Daily Collection' : 'Add New Daily Collection'}</h2>
+                        <form onSubmit={handleSubmit} className="daily-collection-form-modal" style={{ padding: 0, border: 'none', boxShadow: 'none', maxWidth: 'none', margin: 0 }}>
+                            <div className="form-row">
+                                <div className="form-group half">
+                                    <label>Date</label>
                                     <input
-                                        type="checkbox"
-                                        id="isTestingDone"
-                                        name="isTestingDone"
-                                        checked={formData.isTestingDone}
-                                        onChange={(e) => handleChange({ target: { name: 'isTestingDone', value: e.target.checked } })}
+                                        type="date"
+                                        name="date"
+                                        value={formData.date}
+                                        onChange={handleChange}
+                                        required
                                     />
-                                    <label htmlFor="isTestingDone" style={{ marginBottom: 0 }}>Deduct Testing?</label>
                                 </div>
-                                {formData.isTestingDone && (
-                                    <span style={{ color: '#0369a1', fontWeight: '600', fontSize: '14px' }}>
-                                        - ₹{(testingVolume * formData.rate).toFixed(2)}
-                                    </span>
-                                )}
+                                <div className="form-group half">
+                                    <label>Machine</label>
+                                    <select
+                                        name="machine"
+                                        value={selectedMachine}
+                                        onChange={handleMachineChange}
+                                        required
+                                    >
+                                        <option value="">Select Machine</option>
+                                        {machines.map(machine => (
+                                            <option key={machine._id} value={machine._id}>
+                                                {machine.name} ({machine.fuel?.name})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group half">
+                                    <label>Shift</label>
+                                    <select
+                                        name="shift"
+                                        value={formData.shift}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="">Select Shift</option>
+                                        {shifts.map(shift => (
+                                            <option key={shift._id} value={shift._id}>{shift.name} ({shift.startTime} - {shift.endTime})</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-                        <div className="form-group third">
-                            <label>Net Sale Amount (₹)</label>
-                            <input
-                                type="number"
-                                value={formData.amount}
-                                readOnly
-                                className="readonly-input"
-                                style={{ fontWeight: 'bold', color: '#16a34a' }}
-                            />
-                        </div>
-                    </div>
 
-                    <div style={{ margin: '20px 0', borderTop: '1px solid #ddd', paddingTop: '10px' }}>
-                        <h4>Collections</h4>
-                        <div className="form-row">
-                            <div className="form-group third">
-                                <label>Cash</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    name="cash"
-                                    value={formData.cash}
-                                    onChange={handleChange}
-                                    min="0"
-                                />
-                            </div>
-                            <div className="form-group third">
-                                <label>Card</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    name="card"
-                                    value={formData.card}
-                                    onChange={handleChange}
-                                    min="0"
-                                />
-                            </div>
-                            <div className="form-group third">
-                                <label>UPI</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    name="upi"
-                                    value={formData.upi}
-                                    onChange={handleChange}
-                                    min="0"
-                                />
-                            </div>
-                            <div className="form-group third">
-                                <label>Credit</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    name="credit"
-                                    value={formData.credit}
-                                    onChange={handleChange}
-                                    min="0"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <label>Short / Excess</label>
-                        <input
-                            type="number"
-                            value={formData.shortExcess}
-                            readOnly
-                            className={`readonly-input ${formData.shortExcess < 0 ? 'negative' : 'positive'}`}
-                        />
-                    </div>
-
-                    <div style={{ margin: '20px 0', borderTop: '1px solid #ddd', paddingTop: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                            <h4 style={{ margin: 0 }}>Shift Expenses</h4>
-                            <button type="button" className="btn-secondary" onClick={addExpenseRow} style={{ padding: '4px 12px', fontSize: '13px' }}>
-                                <i className="fas fa-plus"></i> Add Expense
-                            </button>
-                        </div>
-                        {formData.expenses.map((expense, index) => (
-                            <div key={index} className="form-row" style={{ marginBottom: '10px', alignItems: 'flex-end', gap: '10px' }}>
-                                <div className="form-group" style={{ flex: 2 }}>
-                                    {index === 0 && <label>Amount</label>}
+                            <div className="form-row">
+                                <div className="form-group third">
+                                    <label>Start Reading</label>
                                     <input
                                         type="number"
-                                        step="0.01"
-                                        value={expense.amount}
-                                        onChange={(e) => handleExpenseChange(index, 'amount', e.target.value)}
-                                        placeholder="Amount"
-                                        min="0"
+                                        name="startReading"
+                                        value={formData.startReading}
+                                        readOnly
+                                        className="readonly-input"
                                     />
                                 </div>
-                                <div className="form-group" style={{ flex: 3 }}>
-                                    {index === 0 && <label>Remarks</label>}
+                                <div className="form-group third">
+                                    <label>End Reading</label>
                                     <input
-                                        type="text"
-                                        value={expense.remarks}
-                                        onChange={(e) => handleExpenseChange(index, 'remarks', e.target.value)}
-                                        placeholder="e.g. Tea, Oil, Repairs"
+                                        type="number"
+                                        name="endReading"
+                                        value={formData.endReading}
+                                        onChange={handleChange}
+                                        required
+                                        min="0"
+                                        step="0.01"
                                     />
                                 </div>
-                                {formData.expenses.length > 1 && (
-                                    <button
-                                        type="button"
-                                        className="btn-delete-sm"
-                                        onClick={() => removeExpenseRow(index)}
-                                        style={{ height: '42px', marginBottom: '4px' }}
-                                    >
-                                        <i className="fas fa-trash-alt"></i>
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="form-group">
-                        <label>Notes:</label>
-                        <textarea
-                            name="notes"
-                            value={formData.notes}
-                            onChange={handleChange}
-                            placeholder="Additional details..."
-                        ></textarea>
-                    </div>
-
-                    {
-                        relatedTransactions.length > 0 && (
-                            <div className="related-transactions-summary" style={{ backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-                                <h4 style={{ color: '#0369a1', marginBottom: '10px', fontSize: '14px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <i className="fas fa-gas-pump"></i> Fuel Requests for this Shift
-                                </h4>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontSize: '13px', color: '#0c4a6e' }}>
-                                        Found <strong>{relatedTransactions.length}</strong> transactions totaling <strong>₹{relatedTransactions.reduce((sum, t) => sum + (t.totalPrice || 0), 0).toFixed(2)}</strong>
-                                    </span>
-                                    <button
-                                        type="button"
-                                        className="btn-primary"
-                                        onClick={() => {
-                                            const cardAmount = relatedTransactions.reduce((sum, t) => sum + (t.totalPrice || 0), 0).toFixed(2);
-                                            setFormData(prev => ({ ...prev, card: cardAmount }));
-                                        }}
-                                        style={{ padding: '6px 12px', fontSize: '12px' }}
-                                    >
-                                        <i className="fas fa-sync-alt"></i> Apply to Card
-                                    </button>
+                                <div className="form-group third">
+                                    <label>Total Sale (Ltrs)</label>
+                                    <input
+                                        type="number"
+                                        value={formData.totalSale}
+                                        readOnly
+                                        className="readonly-input"
+                                    />
                                 </div>
                             </div>
-                        )
-                    }
 
-                    <div className="form-actions">
-                        {editingCollection && (
-                            <button type="button" className="btn-secondary" onClick={resetForm}>
-                                <i className="fas fa-times"></i> Cancel Edit/Close
-                            </button>
-                        )}
-                        <button type="submit" className="btn-primary" disabled={!selectedMachine || formData.endReading === ''}>
-                            <i className="fas fa-save"></i> {editingCollection ? 'Update Entry' : 'Save Entry'}
-                        </button>
+                            <div className="form-row">
+                                <div className="form-group third">
+                                    <label>Rate (₹)</label>
+                                    <input
+                                        type="number"
+                                        name="rate"
+                                        value={formData.rate}
+                                        onChange={handleChange}
+                                        readOnly={JSON.parse(localStorage.getItem('user'))?.role !== 'manager'}
+                                        className={JSON.parse(localStorage.getItem('user'))?.role !== 'manager' ? "readonly-input" : ""}
+                                    />
+                                </div>
+                                <div className="form-group third">
+                                    <label>Testing Deduction (₹)</label>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', height: '42px' }}>
+                                        <div className="checkbox-group" style={{ margin: 0 }}>
+                                            <input
+                                                type="checkbox"
+                                                id="isTestingDone"
+                                                name="isTestingDone"
+                                                checked={formData.isTestingDone}
+                                                onChange={(e) => handleChange({ target: { name: 'isTestingDone', value: e.target.checked } })}
+                                            />
+                                            <label htmlFor="isTestingDone" style={{ marginBottom: 0 }}>Deduct Testing?</label>
+                                        </div>
+                                        {formData.isTestingDone && (
+                                            <span style={{ color: '#0369a1', fontWeight: '600', fontSize: '14px' }}>
+                                                - ₹{(testingVolume * formData.rate).toFixed(2)}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="form-group third">
+                                    <label>Net Sale Amount (₹)</label>
+                                    <input
+                                        type="number"
+                                        value={formData.amount}
+                                        readOnly
+                                        className="readonly-input"
+                                        style={{ fontWeight: 'bold', color: '#16a34a' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ margin: '20px 0', borderTop: '1px solid #eee', paddingTop: '15px' }}>
+                                <h4 style={{ marginBottom: '15px', color: '#475569' }}>Collections</h4>
+                                <div className="form-row">
+                                    <div className="form-group third">
+                                        <label>Cash</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            name="cash"
+                                            value={formData.cash}
+                                            onChange={handleChange}
+                                            min="0"
+                                        />
+                                    </div>
+                                    <div className="form-group third">
+                                        <label>Card</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            name="card"
+                                            value={formData.card}
+                                            onChange={handleChange}
+                                            min="0"
+                                        />
+                                    </div>
+                                    <div className="form-group third">
+                                        <label>UPI</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            name="upi"
+                                            value={formData.upi}
+                                            onChange={handleChange}
+                                            min="0"
+                                        />
+                                    </div>
+                                    <div className="form-group third">
+                                        <label>Credit</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            name="credit"
+                                            value={formData.credit}
+                                            onChange={handleChange}
+                                            min="0"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Short / Excess</label>
+                                <input
+                                    type="number"
+                                    value={formData.shortExcess}
+                                    readOnly
+                                    className={`readonly-input ${formData.shortExcess < 0 ? 'negative' : 'positive'}`}
+                                />
+                            </div>
+
+                            <div style={{ margin: '20px 0', borderTop: '1px solid #eee', paddingTop: '15px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                    <h4 style={{ margin: 0, color: '#475569' }}>Shift Expenses</h4>
+                                    <button type="button" className="btn-primary" onClick={addExpenseRow} style={{ padding: '6px 12px', fontSize: '12px', height: 'auto' }}>
+                                        <i className="fas fa-plus"></i> Add Expense
+                                    </button>
+                                </div>
+                                {formData.expenses.map((expense, index) => (
+                                    <div key={index} className="form-row" style={{ marginBottom: '10px', alignItems: 'flex-end', gap: '10px', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #eee' }}>
+                                        <div className="form-group" style={{ flex: 2 }}>
+                                            <label>Amount</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                value={expense.amount}
+                                                onChange={(e) => handleExpenseChange(index, 'amount', e.target.value)}
+                                                placeholder="Amount"
+                                                min="0"
+                                            />
+                                        </div>
+                                        <div className="form-group" style={{ flex: 3 }}>
+                                            <label>Remarks</label>
+                                            <input
+                                                type="text"
+                                                value={expense.remarks}
+                                                onChange={(e) => handleExpenseChange(index, 'remarks', e.target.value)}
+                                                placeholder="e.g. Tea, Oil, Repairs"
+                                            />
+                                        </div>
+                                        {formData.expenses.length > 1 && (
+                                            <button
+                                                type="button"
+                                                className="btn-delete-sm"
+                                                onClick={() => removeExpenseRow(index)}
+                                                style={{ height: '42px', marginBottom: '4px', borderColor: '#fee2e2' }}
+                                            >
+                                                <i className="fas fa-trash-alt"></i>
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="form-group">
+                                <label>Notes:</label>
+                                <textarea
+                                    name="notes"
+                                    value={formData.notes}
+                                    onChange={handleChange}
+                                    placeholder="Additional details..."
+                                    rows="2"
+                                ></textarea>
+                            </div>
+
+                            {relatedTransactions.length > 0 && (
+                                <div className="related-transactions-summary" style={{ backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+                                    <h4 style={{ color: '#0369a1', marginBottom: '10px', fontSize: '14px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <i className="fas fa-gas-pump"></i> Fuel Requests for this Shift
+                                    </h4>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '13px', color: '#0c4a6e' }}>
+                                            Found <strong>{relatedTransactions.length}</strong> transactions totaling <strong>₹{relatedTransactions.reduce((sum, t) => sum + (t.totalPrice || 0), 0).toFixed(2)}</strong>
+                                        </span>
+                                        <button
+                                            type="button"
+                                            className="btn-primary"
+                                            onClick={() => {
+                                                const cardAmount = relatedTransactions.reduce((sum, t) => sum + (t.totalPrice || 0), 0).toFixed(2);
+                                                setFormData(prev => ({ ...prev, card: cardAmount }));
+                                                const results = calculateShortExcess({ ...formData, card: cardAmount }, testingVolume);
+                                                setFormData(prev => ({ ...prev, ...results }));
+                                            }}
+                                            style={{ padding: '6px 12px', fontSize: '12px', height: 'auto' }}
+                                        >
+                                            <i className="fas fa-sync-alt"></i> Apply to Card
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="form-actions" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
+                                <button type="submit" className="btn-success" disabled={!selectedMachine || formData.endReading === ''}>
+                                    <i className="fas fa-save"></i> {editingCollection ? 'Update Entry' : 'Save Entry'}
+                                </button>
+                                <button type="button" className="btn-secondary" onClick={resetForm}>
+                                    <i className="fas fa-times"></i> Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </form >
+                </div>
             )}
 
             <div className={`filters-wrapper ${showFilters ? 'expanded' : ''}`}>

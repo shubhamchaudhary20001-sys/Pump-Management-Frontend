@@ -175,25 +175,30 @@ const Organizations = () => {
       </div>
 
       {showForm && (
-        <form className="org-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Fuel Station Name:</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>{editingOrg ? 'Edit Fuel Station' : 'Add New Fuel Station'}</h2>
+            <form className="org-form-modal" onSubmit={handleSubmit} style={{ padding: 0, border: 'none', boxShadow: 'none', maxWidth: 'none', margin: 0 }}>
+              <div className="form-group">
+                <label>Fuel Station Name:</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-actions" style={{ borderTop: '1px solid #eee', marginTop: '20px', paddingTop: '20px' }}>
+                <button type="submit" className="btn-success">
+                  <i className="fas fa-save"></i> {editingOrg ? 'Update' : 'Create'} Station
+                </button>
+                <button type="button" className="btn-secondary" onClick={resetForm}>
+                  <i className="fas fa-times"></i> Cancel
+                </button>
+              </div>
+            </form>
           </div>
-          <div className="form-actions">
-            <button type="submit" className="btn-success">
-              <i className="fas fa-save"></i> {editingOrg ? 'Update' : 'Create'} Station
-            </button>
-            <button type="button" className="btn-secondary" onClick={resetForm}>
-              <i className="fas fa-times"></i> Cancel
-            </button>
-          </div>
-        </form>
+        </div>
       )}
 
       <div className={`filters-wrapper ${showFilters ? 'expanded' : ''}`}>
