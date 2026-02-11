@@ -24,7 +24,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 32px 24px;
-  min-height: 100px;
+  min-height: 10px;
 }
 
 .navbar-brand {
@@ -72,11 +72,29 @@
   margin: 0;
   padding: 0 16px;
   flex: 1;
+  overflow-y: auto;
+}
+
+.navbar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.navbar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.navbar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.navbar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .navbar-filter {
   padding: 16px 24px;
-  margin-bottom: 24px;
+  margin-bottom: 4px;
 }
 
 .navbar-filter select {

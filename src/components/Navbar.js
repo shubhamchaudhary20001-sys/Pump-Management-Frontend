@@ -88,7 +88,7 @@ const Navbar = ({ activeTab, setActiveTab, currentUser, onLogout, isCollapsed, o
 
       {currentUser?.role === 'admin' && !isCollapsed && (
         <div className="navbar-filter">
-          <label htmlFor="station-filter">Filter Station:</label>
+          {/*<label htmlFor="station-filter">Filter Station:</label>*/}
           <select
             id="station-filter"
             value={selectedOrganization}

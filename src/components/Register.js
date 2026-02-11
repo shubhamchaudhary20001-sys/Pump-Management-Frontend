@@ -93,7 +93,7 @@ const Register = ({ onLogin }) => {
   };
 
   return (
-    <div className="auth-container">
+    <div className="auth-container" style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/fuel_station_1920x1080.png)` }}>
       <div className="auth-card">
         <h2><i className="fas fa-user-plus"></i> Register for Petrol Management</h2>
         <form onSubmit={handleSubmit}>
