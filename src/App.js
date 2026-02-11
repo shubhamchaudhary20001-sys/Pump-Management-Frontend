@@ -17,10 +17,11 @@ import Testing from './components/Testing';
 import Shifts from './components/Shifts';
 import SalesReport from './components/SalesReport';
 import AuditLogs from './components/AuditLogs';
+import Credit from './components/Credit';
 
 
 function App() {
-  const [activeTab, setActiveTab] = useState('transactions');
+  const [activeTab, setActiveTab] = useState('daily-collection');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
@@ -126,6 +127,8 @@ function App() {
         return <SalesReport {...commonProps} />;
       case 'audit-logs':
         return <AuditLogs {...commonProps} />;
+      case 'credit-ledger':
+        return <Credit {...commonProps} />;
       default:
         return <Dashboard {...commonProps} />;
     }

@@ -29,30 +29,33 @@ const Navbar = ({ activeTab, setActiveTab, currentUser, onLogout, isCollapsed, o
     if (currentUser?.role === 'admin') {
       return [
         ...baseItems,
+        { id: 'reports', label: 'Sales Report', icon: <i className="fas fa-chart-line"></i> },
+        { id: 'daily-collection', label: 'Daily Collection', icon: <i className="fas fa-file-invoice-dollar"></i> },
+        { id: 'credit-ledger', label: 'Credit Ledger', icon: <i className="fas fa-book"></i> },
+        { id: 'tank-refills', label: 'Tank Refills', icon: <i className="fas fa-fill-drip"></i> },
+        { id: 'testing', label: 'Testing', icon: <i className="fas fa-flask"></i> },
         { id: 'organizations', label: 'Fuel Stations', icon: <i className="fas fa-building"></i> },
         { id: 'users', label: 'Users', icon: <i className="fas fa-users"></i> },
         { id: 'machines', label: 'Machines', icon: <i className="fas fa-gears"></i> }, // Or something else
         { id: 'tanks', label: 'Tanks', icon: <i className="fas fa-oil-can"></i> },
-        { id: 'tank-refills', label: 'Tank Refills', icon: <i className="fas fa-fill-drip"></i> },
-        { id: 'testing', label: 'Testing', icon: <i className="fas fa-flask"></i> },
         { id: 'shifts', label: 'Shift Master', icon: <i className="fas fa-clock"></i> },
         { id: 'fuels', label: 'Fuels', icon: <i className="fas fa-oil-can"></i> },
-        { id: 'daily-collection', label: 'Daily Collection', icon: <i className="fas fa-file-invoice-dollar"></i> },
-        { id: 'reports', label: 'Sales Report', icon: <i className="fas fa-chart-line"></i> },
         { id: 'audit-logs', label: 'Audit Logs', icon: <i className="fas fa-file-shield"></i> }
       ];
     } else if (currentUser?.role === 'manager') {
       return [
         ...baseItems,
+        { id: 'reports', label: 'Sales Report', icon: <i className="fas fa-chart-line"></i> },
+        { id: 'daily-collection', label: 'Daily Collection', icon: <i className="fas fa-file-invoice-dollar"></i> },
+        { id: 'credit-ledger', label: 'Credit Ledger', icon: <i className="fas fa-book"></i> },
+        { id: 'tank-refills', label: 'Tank Refills', icon: <i className="fas fa-fill-drip"></i> },
+        { id: 'testing', label: 'Testing', icon: <i className="fas fa-flask"></i> },
         { id: 'users', label: 'Users', icon: <i className="fas fa-users"></i> },
         { id: 'machines', label: 'Machines', icon: <i className="fas fa-gears"></i> },
         { id: 'tanks', label: 'Tanks', icon: <i className="fas fa-oil-can"></i> },
-        { id: 'tank-refills', label: 'Tank Refills', icon: <i className="fas fa-fill-drip"></i> },
-        { id: 'testing', label: 'Testing', icon: <i className="fas fa-flask"></i> },
         { id: 'shifts', label: 'Shift Master', icon: <i className="fas fa-clock"></i> },
-        { id: 'fuels', label: 'Fuels', icon: <i className="fas fa-oil-can"></i> },
-        { id: 'daily-collection', label: 'Daily Collection', icon: <i className="fas fa-file-invoice-dollar"></i> },
-        { id: 'reports', label: 'Sales Report', icon: <i className="fas fa-chart-line"></i> }
+        { id: 'fuels', label: 'Fuels', icon: <i className="fas fa-oil-can"></i> }
+
       ];
     } else if (currentUser?.role === 'purchaser') {
       return baseItems; // Only Dashboard and Transactions
