@@ -126,6 +126,25 @@
   font-size: 14px;
 }
 
+.toggle-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px;
+  font-size: 15px;
+  transition: all 0.2s;
+  text-decoration: none;
+  margin-top: 4px;
+}
+
+.toggle-btn:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+  transform: translateY(-1px);
+}
+
 .auth-links a {
   color: var(--primary);
   text-decoration: none;

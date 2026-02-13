@@ -106,9 +106,9 @@ function App() {
 
   const renderAuthContent = () => {
     if (authMode === 'login') {
-      return <Login onLogin={handleLogin} />;
+      return <Login onLogin={handleLogin} setAuthMode={setAuthMode} />;
     } else {
-      return <Register onLogin={handleLogin} />;
+      return <Register onLogin={handleLogin} setAuthMode={setAuthMode} />;
     }
   };
 

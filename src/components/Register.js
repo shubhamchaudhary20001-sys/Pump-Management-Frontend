@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './Auth.css';
 
-const Register = ({ onLogin }) => {
+const Register = ({ onLogin, setAuthMode }) => {
   const [formData, setFormData] = useState({
     firstname: '',
     lastname: '',
@@ -213,7 +213,10 @@ const Register = ({ onLogin }) => {
         </form>
 
         <div className="auth-links">
-          <p>Use the toggle below to switch to login</p>
+          <p>Already have an account?</p>
+          <button className="toggle-btn" onClick={() => setAuthMode('login')}>
+            Back to Login
+          </button>
         </div>
       </div>
     </div>

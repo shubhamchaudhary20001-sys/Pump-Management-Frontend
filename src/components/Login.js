@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './Auth.css';
 
-const Login = ({ onLogin }) => {
+const Login = ({ onLogin, setAuthMode }) => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -109,9 +109,12 @@ const Login = ({ onLogin }) => {
           </button>
         </form>
 
-        <div className="auth-links">
-          <p>Use the toggle below to switch to registration</p>
-        </div>
+        {/* <div className="auth-links">
+          <p>Don't have an account?</p>
+          <button className="toggle-btn" onClick={() => setAuthMode('register')}>
+            Register New Fuel Station
+          </button>
+        </div> */}
       </div>
     </div>
   );
