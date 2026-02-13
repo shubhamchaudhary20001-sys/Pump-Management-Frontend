@@ -71,8 +71,8 @@ const Dashboard = ({ organizationFilter }) => {
       }
 
       const [orgRes, userRes, fuelRes] = await Promise.all([
-        axios.get(orgUrl),
-        axios.get(userUrl),
+        currentUser?.role === 'admin' ? axios.get(orgUrl) : Promise.resolve({ data: [] }),
+        ['admin', 'manager'].includes(currentUser?.role) ? axios.get(userUrl) : Promise.resolve({ data: [] }),
         axios.get(fuelUrl)
       ]);
 
@@ -103,9 +103,9 @@ const Dashboard = ({ organizationFilter }) => {
 
       // Role-based filters
       if (currentUser.role === 'purchaser') {
-        transUrl += `&user=${currentUser._id}`;
+        transUrl += `&user=${currentUser.id}`;
       } else if (currentUser.role === 'salesman') {
-        transUrl += `&assignedTo=${currentUser._id}`;
+        transUrl += `&assignedTo=${currentUser.id}`;
       }
 
       // Add filters
@@ -149,9 +149,9 @@ const Dashboard = ({ organizationFilter }) => {
 
       // Role-based filters
       if (currentUser.role === 'purchaser') {
-        transUrl += `&user=${currentUser._id}`;
+        transUrl += `&user=${currentUser.id}`;
       } else if (currentUser.role === 'salesman') {
-        transUrl += `&assignedTo=${currentUser._id}`;
+        transUrl += `&assignedTo=${currentUser.id}`;
       }
 
       // Add filters

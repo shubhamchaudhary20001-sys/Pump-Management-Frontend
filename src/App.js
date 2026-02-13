@@ -44,8 +44,14 @@ function App() {
         const response = await axios.get(`${apiBaseUrl}/auth/verify`);
 
         if (response.data && response.data.user) {
-          setCurrentUser(response.data.user);
+          const user = response.data.user;
+          setCurrentUser(user);
           setIsAuthenticated(true);
+
+          // Set appropriate default tab based on role if currently on daily-collection
+          if (activeTab === 'daily-collection' && (user.role === 'purchaser' || user.role === 'salesman')) {
+            setActiveTab('transactions');
+          }
         } else {
           throw new Error('Invalid authentication response');
         }
@@ -67,6 +73,15 @@ function App() {
   const handleLogin = (user) => {
     setCurrentUser(user);
     setIsAuthenticated(true);
+
+    // Set appropriate default tab based on role
+    if (user.role === 'purchaser') {
+      setActiveTab('transactions');
+    } else if (user.role === 'salesman') {
+      setActiveTab('transactions');
+    } else {
+      setActiveTab('dashboard');
+    }
   };
 
   const handleLogout = () => {

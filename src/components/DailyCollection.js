@@ -71,6 +71,9 @@ const DailyCollection = ({ organizationFilter }) => {
     const [showFilters, setShowFilters] = useState(false);
 
     const fetchCollections = useCallback(async (page = 1, limit = itemsPerPage) => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user && user.role === 'purchaser') return;
+
         setIsLoading(true);
         try {
             const user = JSON.parse(localStorage.getItem('user'));
@@ -252,9 +255,12 @@ const DailyCollection = ({ organizationFilter }) => {
     }, [fetchRelatedTransactions]);
 
     useEffect(() => {
-        fetchMachines();
-        fetchUsers();
-        fetchShifts();
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user && user.role !== 'purchaser') {
+            fetchMachines();
+            fetchUsers();
+            fetchShifts();
+        }
     }, [fetchMachines, fetchUsers, fetchShifts]);
 
     useEffect(() => {

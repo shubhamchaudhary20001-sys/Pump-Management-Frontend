@@ -218,6 +218,13 @@ const Transactions = ({ organizationFilter }) => {
       if (filters.user) transUrl += `&user=${filters.user}`;
       if (filters.vehicleNumber) transUrl += `&vehicleNumber=${encodeURIComponent(filters.vehicleNumber)}`;
 
+      // Role-based visibility enforcement
+      if (user.role === 'purchaser') {
+        transUrl += `&user=${user.id}`;
+      } else if (user.role === 'salesman') {
+        transUrl += `&assignedTo=${user.id}`;
+      }
+
       // Add sorting
       if (sortConfig.key) {
         transUrl += `&sortBy=${sortConfig.key}&sortOrder=${sortConfig.direction}`;
@@ -257,16 +264,19 @@ const Transactions = ({ organizationFilter }) => {
         usersPromise = axios.get(usersUrl);
       }
 
-      // Fetch machines - for salesman and admin/manager
-      let machinesUrl = `${process.env.REACT_APP_API_BASE_URL}/machines?page=1&limit=1000&isactive=true`;
-      if (user && user.role === 'salesman') {
-        machinesUrl += '&mine=true';
-      } else if (user && user.role !== 'admin') {
-        machinesUrl += `&organisation=${user.organisation._id}`;
-      } else if (organizationFilter) {
-        machinesUrl += `&organisation=${organizationFilter}`;
+      // Fetch machines - for salesman and admin/manager (NOT for purchaser)
+      let machinesPromise = Promise.resolve({ data: [] });
+      if (user && user.role !== 'purchaser') {
+        let machinesUrl = `${process.env.REACT_APP_API_BASE_URL}/machines?page=1&limit=1000&isactive=true`;
+        if (user.role === 'salesman') {
+          machinesUrl += '&mine=true';
+        } else if (user.role !== 'admin') {
+          machinesUrl += `&organisation=${user.organisation._id}`;
+        } else if (organizationFilter) {
+          machinesUrl += `&organisation=${organizationFilter}`;
+        }
+        machinesPromise = axios.get(machinesUrl);
       }
-      let machinesPromise = axios.get(machinesUrl);
 
       const [transRes, fuelsRes, usersRes, orgsRes, machinesRes] = await Promise.all([
         axios.get(transUrl),
@@ -925,7 +935,7 @@ const Transactions = ({ organizationFilter }) => {
                           <i className="fas fa-hand-pointer"></i> Assign
                         </button>
                       )}
-                      {currentUser && currentUser.role === 'salesman' && transaction.assignedTo && transaction.assignedTo._id === currentUser._id && (
+                      {currentUser && currentUser.role === 'salesman' && transaction.assignedTo && transaction.assignedTo._id === currentUser.id && (
                         <button className="btn-danger" onClick={() => handleReject(transaction._id)}>
                           <i className="fas fa-ban"></i> Reject
                         </button>
