@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './Dashboard.css';
 
-const Dashboard = ({ organizationFilter }) => {
+const Dashboard = ({ organizationFilter, currentUser }) => {
   const [stats, setStats] = useState({
     organizations: 0,
     users: 0,
@@ -13,7 +13,6 @@ const Dashboard = ({ organizationFilter }) => {
   });
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -202,18 +201,6 @@ const Dashboard = ({ organizationFilter }) => {
     }
   }, [currentUser, organizationFilter]);
 
-  useEffect(() => {
-    try {
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        setCurrentUser(user);
-      }
-    } catch (e) {
-      console.error('Error parsing user from localStorage', e);
-    }
-    setLoading(false);
-  }, []);
 
   useEffect(() => {
     if (currentUser) {
@@ -221,6 +208,7 @@ const Dashboard = ({ organizationFilter }) => {
       fetchTransactions();
       fetchFuels();
       fetchTransactionStats();
+      setLoading(false);
     }
   }, [currentUser, fetchStats, fetchTransactions, fetchFuels, fetchTransactionStats]);
 

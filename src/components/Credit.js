@@ -10,8 +10,8 @@ const Credit = ({ organizationFilter }) => {
     const [editingId, setEditingId] = useState(null);
     const [summary, setSummary] = useState({ totalCredit: 0, totalPaid: 0, balance: 0 });
     const [currentUser, setCurrentUser] = useState(null);
-    const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1 });
-    const [itemsPerPage] = useState(10);
+    const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalItems: 0, hasNext: false, hasPrev: false });
+    const [itemsPerPage, setItemsPerPage] = useState(10);
     const [filters, setFilters] = useState({
         user: '',
         startDate: '',
@@ -41,7 +41,7 @@ const Credit = ({ organizationFilter }) => {
         }
     }, []);
 
-    const fetchData = useCallback(async (page = 1) => {
+    const fetchData = useCallback(async (page = 1, limit = itemsPerPage) => {
         setLoading(true);
         try {
             const user = JSON.parse(localStorage.getItem('user'));
@@ -49,7 +49,7 @@ const Credit = ({ organizationFilter }) => {
 
             const params = new URLSearchParams({
                 page: page.toString(),
-                limit: itemsPerPage.toString()
+                limit: limit.toString()
             });
 
             if (user && user.role !== 'admin') {
@@ -303,22 +303,47 @@ const Credit = ({ organizationFilter }) => {
                 </table>
             </div>
 
-            <div className="pagination">
-                <button
-                    disabled={pagination.currentPage === 1}
-                    onClick={() => fetchData(pagination.currentPage - 1)}
-                    className="btn-secondary"
-                >
-                    Previous
-                </button>
-                <span>Page {pagination.currentPage} of {pagination.totalPages}</span>
-                <button
-                    disabled={pagination.currentPage === pagination.totalPages}
-                    onClick={() => fetchData(pagination.currentPage + 1)}
-                    className="btn-secondary"
-                >
-                    Next
-                </button>
+            <div className="pagination-container">
+                <div className="pagination-info">
+                    <div>
+                        Showing {((pagination.currentPage - 1) * itemsPerPage) + 1} to {Math.min(pagination.currentPage * itemsPerPage, pagination.totalItems)} of {pagination.totalItems} entries
+                    </div>
+                    {pagination.totalPages > 1 && (
+                        <div className="pagination-controls">
+                            <button
+                                disabled={!pagination.hasPrev}
+                                onClick={() => fetchData(pagination.currentPage - 1, itemsPerPage)}
+                                className="btn-pagination"
+                            >
+                                <i className="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <span className="page-indicator">Page {pagination.currentPage} of {pagination.totalPages}</span>
+                            <button
+                                disabled={!pagination.hasNext}
+                                onClick={() => fetchData(pagination.currentPage + 1, itemsPerPage)}
+                                className="btn-pagination"
+                            >
+                                Next <i className="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    )}
+                    <div className="page-size-selector">
+                        <label>Items per page:</label>
+                        <select
+                            value={itemsPerPage}
+                            onChange={(e) => {
+                                const newSize = Number(e.target.value);
+                                setItemsPerPage(newSize);
+                                fetchData(1, newSize);
+                            }}
+                            className="page-size-select"
+                        >
+                            {[10, 20, 50, 100, 250, 500, 1000].map(size => (
+                                <option key={size} value={size}>{size}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
             </div>
 
             {showForm && (

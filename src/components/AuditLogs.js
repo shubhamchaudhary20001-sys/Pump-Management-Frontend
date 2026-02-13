@@ -193,42 +193,46 @@ const AuditLogs = ({ organizationFilter }) => {
             </div>
 
             {/* Pagination Controls */}
-            <div className="pagination-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
-                <div className="items-per-page">
-                    <label style={{ marginRight: '10px' }}>Logs per page:</label>
-                    <select
-                        value={itemsPerPage}
-                        onChange={(e) => {
-                            setItemsPerPage(Number(e.target.value));
-                        }}
-                        style={{ padding: '5px', borderRadius: '4px', border: '1px solid #ddd' }}
-                    >
-                        {[10, 20, 50, 100, 250, 500, 1000].map(size => (
-                            <option key={size} value={size}>{size}</option>
-                        ))}
-                    </select>
-                </div>
-                {pagination.totalPages > 1 && (
-                    <div className="pagination">
-                        <button
-                            className="btn-pagination"
-                            onClick={() => fetchLogs(pagination.currentPage - 1)}
-                            disabled={!pagination.hasPrev}
-                        >
-                            Previous
-                        </button>
-                        <span className="pagination-info">
-                            Page {pagination.currentPage} of {pagination.totalPages} ({pagination.totalItems} logs)
-                        </span>
-                        <button
-                            className="btn-pagination"
-                            onClick={() => fetchLogs(pagination.currentPage + 1)}
-                            disabled={!pagination.hasNext}
-                        >
-                            Next
-                        </button>
+            <div className="pagination-container">
+                <div className="pagination-info">
+                    <div>
+                        Showing {((pagination.currentPage - 1) * itemsPerPage) + 1} to {Math.min(pagination.currentPage * itemsPerPage, pagination.totalItems)} of {pagination.totalItems} logs
                     </div>
-                )}
+                    {pagination.totalPages > 1 && (
+                        <div className="pagination-controls">
+                            <button
+                                disabled={!pagination.hasPrev}
+                                onClick={() => fetchLogs(pagination.currentPage - 1, itemsPerPage)}
+                                className="btn-pagination"
+                            >
+                                <i className="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <span className="page-indicator">Page {pagination.currentPage} of {pagination.totalPages}</span>
+                            <button
+                                disabled={!pagination.hasNext}
+                                onClick={() => fetchLogs(pagination.currentPage + 1, itemsPerPage)}
+                                className="btn-pagination"
+                            >
+                                Next <i className="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    )}
+                    <div className="page-size-selector">
+                        <label>Logs per page:</label>
+                        <select
+                            value={itemsPerPage}
+                            onChange={(e) => {
+                                setItemsPerPage(Number(e.target.value));
+                                fetchLogs(1, Number(e.target.value));
+                            }}
+                            className="page-size-select"
+                        >
+                            {[10, 20, 50, 100, 250, 500, 1000].map(size => (
+                                <option key={size} value={size}>{size}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
     );

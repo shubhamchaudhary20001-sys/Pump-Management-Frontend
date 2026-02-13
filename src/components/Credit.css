@@ -137,15 +137,6 @@
     color: #dc2626;
 }
 
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    padding: 20px;
-    border-top: 1px solid var(--border);
-    margin-top: 16px;
-}
 
 .modal-overlay {
     position: fixed;

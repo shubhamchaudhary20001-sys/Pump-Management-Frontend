@@ -23,6 +23,8 @@ const Testing = ({ organizationFilter }) => {
             notes: ''
         };
     });
+    const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalItems: 0, hasNext: false, hasPrev: false });
+    const [itemsPerPage, setItemsPerPage] = useState(10);
     const [filters, setFilters] = useState({
         tank: '',
         machine: '',
@@ -32,11 +34,13 @@ const Testing = ({ organizationFilter }) => {
 
     const [showFilters, setShowFilters] = useState(false);
 
-    const fetchTestings = useCallback(async () => {
+    const fetchTestings = useCallback(async (page = 1, limit = itemsPerPage) => {
         setIsLoading(true);
         try {
             const user = JSON.parse(localStorage.getItem('user'));
             const params = new URLSearchParams();
+            params.append('page', page.toString());
+            params.append('limit', limit.toString());
 
             if (user?.role !== 'admin' && user?.organisation?._id) {
                 params.append('organisation', user.organisation._id);
@@ -48,10 +52,10 @@ const Testing = ({ organizationFilter }) => {
             if (filters.machine) params.append('machine', filters.machine);
             if (filters.startDate) params.append('startDate', filters.startDate);
             if (filters.endDate) params.append('endDate', filters.endDate);
-            params.append('limit', '1000');
 
             const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/testings?${params}`);
             setTestings(response.data.data || []);
+            setPagination(response.data.pagination || pagination);
         } catch (error) {
             console.error('Error fetching testings:', error);
             setMessage({ text: 'Error fetching testing records', type: 'error' });
@@ -466,6 +470,48 @@ const Testing = ({ organizationFilter }) => {
                         </table>
                     </div>
                 )}
+            </div>
+            <div className="pagination-container">
+                <div className="pagination-info">
+                    <div>
+                        Showing {((pagination.currentPage - 1) * itemsPerPage) + 1} to {Math.min(pagination.currentPage * itemsPerPage, pagination.totalItems)} of {pagination.totalItems} records
+                    </div>
+                    {pagination.totalPages > 1 && (
+                        <div className="pagination-controls">
+                            <button
+                                disabled={!pagination.hasPrev}
+                                onClick={() => fetchTestings(pagination.currentPage - 1, itemsPerPage)}
+                                className="btn-pagination"
+                            >
+                                <i className="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <span className="page-indicator">Page {pagination.currentPage} of {pagination.totalPages}</span>
+                            <button
+                                disabled={!pagination.hasNext}
+                                onClick={() => fetchTestings(pagination.currentPage + 1, itemsPerPage)}
+                                className="btn-pagination"
+                            >
+                                Next <i className="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    )}
+                    <div className="page-size-selector">
+                        <label>Items per page:</label>
+                        <select
+                            value={itemsPerPage}
+                            onChange={(e) => {
+                                const newSize = Number(e.target.value);
+                                setItemsPerPage(newSize);
+                                fetchTestings(1, newSize);
+                            }}
+                            className="page-size-select"
+                        >
+                            {[10, 20, 50, 100, 250, 500, 1000].map(size => (
+                                <option key={size} value={size}>{size}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
     );

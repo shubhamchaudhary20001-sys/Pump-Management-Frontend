@@ -113,7 +113,10 @@ function App() {
   };
 
   const renderContent = () => {
-    const commonProps = { organizationFilter: currentUser?.role === 'admin' ? selectedOrganization : '' };
+    const commonProps = {
+      organizationFilter: currentUser?.role === 'admin' ? selectedOrganization : '',
+      currentUser: currentUser
+    };
 
     switch (activeTab) {
       case 'dashboard':

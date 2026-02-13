@@ -124,7 +124,6 @@
   }
 }
 
-/* Modal Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -149,16 +148,6 @@
   animation: slideUp 0.3s ease-out;
 }
 
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
 
 .modal-content h2 {
   margin-top: 0;

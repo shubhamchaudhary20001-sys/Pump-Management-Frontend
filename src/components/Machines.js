@@ -571,6 +571,25 @@ const Machines = ({ organizationFilter }) => {
                     <div>
                         Showing {((pagination.currentPage - 1) * itemsPerPage) + 1} to {Math.min(pagination.currentPage * itemsPerPage, pagination.totalItems)} of {pagination.totalItems} machines
                     </div>
+                    {pagination.totalPages > 1 && (
+                        <div className="pagination-controls">
+                            <button
+                                disabled={!pagination.hasPrev}
+                                onClick={() => fetchData(pagination.currentPage - 1, itemsPerPage)}
+                                className="btn-pagination"
+                            >
+                                <i className="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <span className="page-indicator">Page {pagination.currentPage} of {pagination.totalPages}</span>
+                            <button
+                                disabled={!pagination.hasNext}
+                                onClick={() => fetchData(pagination.currentPage + 1, itemsPerPage)}
+                                className="btn-pagination"
+                            >
+                                Next <i className="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    )}
                     <div className="page-size-selector">
                         <label>Items per page:</label>
                         <select
@@ -589,25 +608,6 @@ const Machines = ({ organizationFilter }) => {
                         </select>
                     </div>
                 </div>
-                {pagination.totalPages > 1 && (
-                    <div className="pagination-controls">
-                        <button
-                            disabled={!pagination.hasPrev}
-                            onClick={() => fetchData(pagination.currentPage - 1, itemsPerPage)}
-                            className="btn-pagination"
-                        >
-                            <i className="fas fa-chevron-left"></i> Previous
-                        </button>
-                        <span className="page-indicator">Page {pagination.currentPage} of {pagination.totalPages}</span>
-                        <button
-                            disabled={!pagination.hasNext}
-                            onClick={() => fetchData(pagination.currentPage + 1, itemsPerPage)}
-                            className="btn-pagination"
-                        >
-                            Next <i className="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                )}
             </div>
         </div>
     );

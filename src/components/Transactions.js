@@ -3,7 +3,7 @@ import axios from 'axios';
 import './Transactions.css';
 import { getInvoiceHtml } from '../utils/InvoiceTemplate';
 
-const Transactions = ({ organizationFilter }) => {
+const Transactions = ({ organizationFilter, currentUser }) => {
   const [transactions, setTransactions] = useState([]);
   const [fuels, setFuels] = useState([]);
   const [organizations, setOrganizations] = useState([]);
@@ -15,7 +15,6 @@ const Transactions = ({ organizationFilter }) => {
   const [selectedMachine, setSelectedMachine] = useState('');
   const [assigningTransactionId, setAssigningTransactionId] = useState(null);
   const [editingTransaction, setEditingTransaction] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
   const [pagination, setPagination] = useState({
     hasNext: false,
     hasPrev: false
@@ -94,8 +93,8 @@ const Transactions = ({ organizationFilter }) => {
       if (filters.salesman) params.append('assignedTo', filters.salesman);
       if (filters.vehicleNumber) params.append('vehicleNumber', filters.vehicleNumber);
 
-      if (user.role === 'purchaser') params.append('user', user._id);
-      if (user.role === 'salesman') params.append('assignedTo', user._id);
+      if (currentUser?.role === 'purchaser') params.append('user', currentUser.id);
+      if (currentUser?.role === 'salesman') params.append('assignedTo', currentUser.id);
 
       const url = `${process.env.REACT_APP_API_BASE_URL}/data/export?${params.toString()}`;
 
@@ -138,10 +137,10 @@ const Transactions = ({ organizationFilter }) => {
       }
 
       // Role-based filters
-      if (user.role === 'purchaser') {
-        params.append('user', user._id);
-      } else if (user.role === 'salesman') {
-        params.append('assignedTo', user._id);
+      if (currentUser.role === 'purchaser') {
+        params.append('user', currentUser.id);
+      } else if (currentUser.role === 'salesman') {
+        params.append('assignedTo', currentUser.id);
       }
 
       // Add filters
@@ -180,15 +179,88 @@ const Transactions = ({ organizationFilter }) => {
     }
   }, [activeTab, organizationFilter, filters]);
 
+  const fetchInitialData = useCallback(async () => {
+    try {
+      if (!currentUser) return;
+
+      // Fetch users - for non-admin users, only get users from their organization
+      let usersUrl = `${process.env.REACT_APP_API_BASE_URL}/users?page=1&limit=1000`; // Increased limit
+      if (currentUser.role !== 'admin') {
+        usersUrl += `&organisation=${currentUser.organisation._id}`;
+      } else if (organizationFilter) {
+        usersUrl += `&organisation=${organizationFilter}`;
+      }
+
+      // Fetch organizations - for non-admin users, only get their organization
+      let orgsUrl = `${process.env.REACT_APP_API_BASE_URL}/organisations?page=1&limit=1000`; // Increased limit
+      if (currentUser.role !== 'admin') {
+        orgsUrl += `&organisation=${currentUser.organisation._id}`;
+      } else if (organizationFilter) {
+        orgsUrl += `&organisation=${organizationFilter}`;
+      }
+
+      // Fetch fuels - for admin, manager, and purchaser
+      let fuelsPromise = Promise.resolve({ data: [] });
+      if (['admin', 'manager', 'purchaser'].includes(currentUser.role)) {
+        let fuelsUrl = `${process.env.REACT_APP_API_BASE_URL}/fuels?page=1&limit=1000`; // Increased limit
+        if (currentUser.role !== 'admin') {
+          fuelsUrl += `&organisation=${currentUser.organisation._id}`;
+        } else if (organizationFilter) {
+          fuelsUrl += `&organisation=${organizationFilter}`;
+        }
+        fuelsPromise = axios.get(fuelsUrl);
+      }
+
+      // Fetch users - only for admin and manager
+      let usersPromise = Promise.resolve({ data: [] });
+      if (['admin', 'manager'].includes(currentUser.role)) {
+        usersPromise = axios.get(usersUrl);
+      }
+
+      // Fetch machines - for salesman and admin/manager (NOT for purchaser)
+      let machinesPromise = Promise.resolve({ data: [] });
+      if (currentUser.role !== 'purchaser') {
+        let machinesUrl = `${process.env.REACT_APP_API_BASE_URL}/machines?page=1&limit=1000&isactive=true`;
+        if (currentUser.role === 'salesman') {
+          machinesUrl += '&mine=true';
+        } else if (currentUser.role !== 'admin') {
+          machinesUrl += `&organisation=${currentUser.organisation._id}`;
+        } else if (organizationFilter) {
+          machinesUrl += `&organisation=${organizationFilter}`;
+        }
+        machinesPromise = axios.get(machinesUrl);
+      }
+
+      const [fuelsRes, usersRes, orgsRes, machinesRes] = await Promise.all([
+        fuelsPromise,
+        usersPromise,
+        axios.get(orgsUrl),
+        machinesPromise
+      ]);
+
+      setFuels(fuelsRes.data?.data || fuelsRes.data || []);
+      setUsers(usersRes.data?.data || usersRes.data || []);
+      setOrganizations(orgsRes.data?.data || orgsRes.data || []);
+      const machinesList = machinesRes.data?.data || machinesRes.data || [];
+      setMachines(machinesList);
+
+      // Auto-select if only one machine
+      if (currentUser.role === 'salesman' && machinesList.length === 1) {
+        setSelectedMachine(machinesList[0]._id);
+      }
+    } catch (error) {
+      console.error('Error fetching initial data:', error);
+    }
+  }, [currentUser, organizationFilter]);
+
   const fetchData = useCallback(async (page = 1, limit = itemsPerPage) => {
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      setCurrentUser(user);
+      if (!currentUser) return;
 
       // Build transaction URL with filters
       let transUrl = `${process.env.REACT_APP_API_BASE_URL}/data?page=${page}&limit=${limit}`;
-      if (user && user.role !== 'admin') {
-        transUrl += `&organisation=${user.organisation._id}`;
+      if (currentUser.role !== 'admin') {
+        transUrl += `&organisation=${currentUser.organisation._id}`;
       } else if (organizationFilter) {
         transUrl += `&organisation=${organizationFilter}`;
       }
@@ -219,10 +291,10 @@ const Transactions = ({ organizationFilter }) => {
       if (filters.vehicleNumber) transUrl += `&vehicleNumber=${encodeURIComponent(filters.vehicleNumber)}`;
 
       // Role-based visibility enforcement
-      if (user.role === 'purchaser') {
-        transUrl += `&user=${user.id}`;
-      } else if (user.role === 'salesman') {
-        transUrl += `&assignedTo=${user.id}`;
+      if (currentUser.role === 'purchaser') {
+        transUrl += `&user=${currentUser.id}`;
+      } else if (currentUser.role === 'salesman') {
+        transUrl += `&assignedTo=${currentUser.id}`;
       }
 
       // Add sorting
@@ -230,95 +302,27 @@ const Transactions = ({ organizationFilter }) => {
         transUrl += `&sortBy=${sortConfig.key}&sortOrder=${sortConfig.direction}`;
       }
 
-      // Fetch users - for non-admin users, only get users from their organization
-      let usersUrl = `${process.env.REACT_APP_API_BASE_URL}/users?page=1&limit=1000`; // Increased limit
-      if (user && user.role !== 'admin') {
-        usersUrl += `&organisation=${user.organisation._id}`;
-      } else if (organizationFilter) {
-        usersUrl += `&organisation=${organizationFilter}`;
-      }
-
-      // Fetch organizations - for non-admin users, only get their organization
-      let orgsUrl = `${process.env.REACT_APP_API_BASE_URL}/organisations?page=1&limit=1000`; // Increased limit
-      if (user && user.role !== 'admin') {
-        orgsUrl += `&organisation=${user.organisation._id}`;
-      } else if (organizationFilter) {
-        orgsUrl += `&organisation=${organizationFilter}`;
-      }
-
-      // Fetch fuels - for admin, manager, and purchaser
-      let fuelsPromise = Promise.resolve({ data: [] });
-      if (user && ['admin', 'manager', 'purchaser'].includes(user.role)) {
-        let fuelsUrl = `${process.env.REACT_APP_API_BASE_URL}/fuels?page=1&limit=1000`; // Increased limit
-        if (user.role !== 'admin') {
-          fuelsUrl += `&organisation=${user.organisation._id}`;
-        } else if (organizationFilter) {
-          fuelsUrl += `&organisation=${organizationFilter}`;
-        }
-        fuelsPromise = axios.get(fuelsUrl);
-      }
-
-      // Fetch users - only for admin and manager
-      let usersPromise = Promise.resolve({ data: [] });
-      if (user && ['admin', 'manager'].includes(user.role)) {
-        usersPromise = axios.get(usersUrl);
-      }
-
-      // Fetch machines - for salesman and admin/manager (NOT for purchaser)
-      let machinesPromise = Promise.resolve({ data: [] });
-      if (user && user.role !== 'purchaser') {
-        let machinesUrl = `${process.env.REACT_APP_API_BASE_URL}/machines?page=1&limit=1000&isactive=true`;
-        if (user.role === 'salesman') {
-          machinesUrl += '&mine=true';
-        } else if (user.role !== 'admin') {
-          machinesUrl += `&organisation=${user.organisation._id}`;
-        } else if (organizationFilter) {
-          machinesUrl += `&organisation=${organizationFilter}`;
-        }
-        machinesPromise = axios.get(machinesUrl);
-      }
-
-      const [transRes, fuelsRes, usersRes, orgsRes, machinesRes] = await Promise.all([
-        axios.get(transUrl),
-        fuelsPromise,
-        usersPromise,
-        axios.get(orgsUrl),
-        machinesPromise
-      ]);
+      const transRes = await axios.get(transUrl);
 
       setTransactions(transRes.data.data);
       setPagination(transRes.data.pagination);
-      setFuels(fuelsRes.data?.data || fuelsRes.data || []);
-      setUsers(usersRes.data?.data || usersRes.data || []);
-      setOrganizations(orgsRes.data?.data || orgsRes.data || []);
-      const machinesList = machinesRes.data?.data || machinesRes.data || [];
-      setMachines(machinesList);
-
-      // Auto-select if only one machine
-      if (user && user.role === 'salesman' && machinesList.length === 1) {
-        setSelectedMachine(machinesList[0]._id);
-      }
 
       // Also fetch stats whenever fetchData is called with filters
       fetchTransactionStats();
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching transactions:', error);
     } finally {
       setLoading(false);
     }
-  }, [activeTab, organizationFilter, filters, sortConfig, fetchTransactionStats, itemsPerPage]);
+  }, [currentUser, activeTab, organizationFilter, filters, sortConfig, fetchTransactionStats, itemsPerPage]);
 
   useEffect(() => {
-    // Get current user from localStorage
-    const user = JSON.parse(localStorage.getItem('user'));
-    setCurrentUser(user);
+    fetchInitialData();
+  }, [fetchInitialData]);
 
+  useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  useEffect(() => {
-    fetchData();
-  }, [activeTab, organizationFilter, filters, fetchData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -980,43 +984,46 @@ const Transactions = ({ organizationFilter }) => {
         )}
       </div>
 
-      {/* Pagination Controls */}
-      <div className="pagination-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
-        <div className="items-per-page">
-          <label style={{ marginRight: '10px' }}>Items per page:</label>
-          <select
-            value={itemsPerPage}
-            onChange={(e) => {
-              setItemsPerPage(Number(e.target.value));
-            }}
-            style={{ padding: '5px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            {[10, 20, 50, 100, 250, 500, 1000].map(size => (
-              <option key={size} value={size}>{size}</option>
-            ))}
-          </select>
-        </div>
-        {pagination.totalPages > 1 && (
-          <div className="pagination">
-            <button
-              className="btn-pagination"
-              onClick={() => fetchData(pagination.currentPage - 1)}
-              disabled={!pagination.hasPrev}
-            >
-              Previous
-            </button>
-            <span className="pagination-info">
-              Page {pagination.currentPage} of {pagination.totalPages} ({pagination.totalItems} total items)
-            </span>
-            <button
-              className="btn-pagination"
-              onClick={() => fetchData(pagination.currentPage + 1)}
-              disabled={!pagination.hasNext}
-            >
-              Next
-            </button>
+      <div className="pagination-container">
+        <div className="pagination-info">
+          <div>
+            Showing {((pagination.currentPage - 1) * itemsPerPage) + 1} to {Math.min(pagination.currentPage * itemsPerPage, pagination.totalItems)} of {pagination.totalItems} requests
           </div>
-        )}
+          {pagination.totalPages > 1 && (
+            <div className="pagination-controls">
+              <button
+                disabled={!pagination.hasPrev}
+                onClick={() => fetchData(pagination.currentPage - 1, itemsPerPage)}
+                className="btn-pagination"
+              >
+                <i className="fas fa-chevron-left"></i> Previous
+              </button>
+              <span className="page-indicator">Page {pagination.currentPage} of {pagination.totalPages}</span>
+              <button
+                disabled={!pagination.hasNext}
+                onClick={() => fetchData(pagination.currentPage + 1, itemsPerPage)}
+                className="btn-pagination"
+              >
+                Next <i className="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          )}
+          <div className="page-size-selector">
+            <label>Items per page:</label>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                fetchData(1, Number(e.target.value));
+              }}
+              className="page-size-select"
+            >
+              {[10, 20, 50, 100, 250, 500, 1000].map(size => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Machine Selection Modal */}
