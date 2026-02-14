@@ -109,12 +109,12 @@ const Login = ({ onLogin, setAuthMode }) => {
           </button>
         </form>
 
-        <div className="auth-links">
+        {/* <div className="auth-links">
           <p>Don't have an account?</p>
           <button className="toggle-btn" onClick={() => setAuthMode('register')}>
             Register New Fuel Station
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );
