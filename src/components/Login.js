@@ -44,7 +44,9 @@ const Login = ({ onLogin, setAuthMode }) => {
         setOrganisations(error.response.data.organisations);
         setError(error.response.data.message);
       } else {
-        setError(error.response?.data?.message || 'Login failed');
+        const message = error.response?.data?.message || 'Login failed';
+        const details = error.response?.data?.details;
+        setError(details ? `${message}: ${details}` : message);
       }
     } finally {
       setLoading(false);
