@@ -41,7 +41,7 @@ const Transactions = ({ organizationFilter, currentUser }) => {
   const [formData, setFormData] = useState(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     const currentDate = new Date().toISOString().split('T')[0];
-    const purchaserName = user && user.role === 'purchaser' ? `${user.firstname} ${user.lastname}` : '';
+    const creatorName = user ? `${user.firstname} ${user.lastname}` : '';
 
     return {
       fuel: '',
@@ -50,10 +50,10 @@ const Transactions = ({ organizationFilter, currentUser }) => {
       quantity: '',
       vehicleType: '',
       vehicleNumber: '',
-      transactionDate: user && user.role === 'purchaser' ? currentDate : '',
+      transactionDate: user && user.role === 'purchaser' ? currentDate : currentDate, // Auto fill current date for form
       status: 'pending',
       notes: '',
-      createdby: purchaserName,
+      createdby: creatorName,
       machine: null
     };
   });
@@ -199,9 +199,9 @@ const Transactions = ({ organizationFilter, currentUser }) => {
         orgsUrl += `&organisation=${organizationFilter}`;
       }
 
-      // Fetch fuels - for admin, manager, and purchaser
+      // Fetch fuels - for admin, manager, purchaser, and salesman
       let fuelsPromise = Promise.resolve({ data: [] });
-      if (['admin', 'manager', 'purchaser'].includes(currentUser.role)) {
+      if (['admin', 'manager', 'purchaser', 'salesman'].includes(currentUser.role)) {
         let fuelsUrl = `${process.env.REACT_APP_API_BASE_URL}/fuels?page=1&limit=1000`; // Increased limit
         if (currentUser.role !== 'admin') {
           fuelsUrl += `&organisation=${currentUser.organisation._id}`;
@@ -211,9 +211,9 @@ const Transactions = ({ organizationFilter, currentUser }) => {
         fuelsPromise = axios.get(fuelsUrl);
       }
 
-      // Fetch users - only for admin and manager
+      // Fetch users - for admin, manager and salesman
       let usersPromise = Promise.resolve({ data: [] });
-      if (['admin', 'manager'].includes(currentUser.role)) {
+      if (['admin', 'manager', 'salesman'].includes(currentUser.role)) {
         usersPromise = axios.get(usersUrl);
       }
 
@@ -245,7 +245,7 @@ const Transactions = ({ organizationFilter, currentUser }) => {
       setMachines(machinesList);
 
       // Auto-select if only one machine
-      if (currentUser.role === 'salesman' && machinesList.length === 1) {
+      if (['salesman', 'manager', 'admin'].includes(currentUser.role) && machinesList.length === 1) {
         setSelectedMachine(machinesList[0]._id);
       }
     } catch (error) {
@@ -355,6 +355,10 @@ const Transactions = ({ organizationFilter, currentUser }) => {
         delete transactionData.user;
       }
 
+      if (currentUser && currentUser.role === 'salesman') {
+        transactionData.machine = formData.machine;
+      }
+
       if (editingTransaction) {
         await axios.put(`${process.env.REACT_APP_API_BASE_URL}/data/${editingTransaction._id}`, {
           ...transactionData,
@@ -383,7 +387,8 @@ const Transactions = ({ organizationFilter, currentUser }) => {
       transactionDate: transaction.transactionDate ? new Date(transaction.transactionDate).toISOString().split('T')[0] : '',
       status: transaction.status || 'pending',
       notes: transaction.notes || '',
-      createdby: transaction.createdby
+      createdby: transaction.createdby,
+      machine: transaction.machine?._id || transaction.machine || null
     });
     setShowForm(true);
   };
@@ -460,7 +465,7 @@ const Transactions = ({ organizationFilter, currentUser }) => {
 
   const resetForm = () => {
     const currentDate = new Date().toISOString().split('T')[0];
-    const purchaserName = currentUser && currentUser.role === 'purchaser' ? `${currentUser.firstname} ${currentUser.lastname}` : '';
+    const creatorName = currentUser ? `${currentUser.firstname} ${currentUser.lastname}` : '';
 
     setFormData({
       fuel: '',
@@ -469,10 +474,10 @@ const Transactions = ({ organizationFilter, currentUser }) => {
       quantity: '',
       vehicleType: '',
       vehicleNumber: '',
-      transactionDate: currentUser && currentUser.role === 'purchaser' ? currentDate : '',
+      transactionDate: currentDate,
       status: 'pending',
       notes: '',
-      createdby: purchaserName,
+      createdby: creatorName,
       machine: null
     });
     setEditingTransaction(null);
@@ -531,7 +536,7 @@ const Transactions = ({ organizationFilter, currentUser }) => {
           >
             <i className="fas fa-search"></i> {showFilters ? 'Hide Search' : 'Search'}
           </button>
-          {currentUser && currentUser.role !== 'salesman' && (
+          {currentUser && currentUser.role !== 'purchaser' && (
             <button
               className="btn-primary"
               onClick={() => setShowForm(!showForm)}
@@ -576,16 +581,16 @@ const Transactions = ({ organizationFilter, currentUser }) => {
               </div>
 
               <div className="form-row">
-                {currentUser && ['admin', 'manager'].includes(currentUser.role) && (
+                {currentUser && ['admin', 'manager', 'salesman'].includes(currentUser.role) && (
                   <div className="form-group">
-                    <label>User:</label>
+                    <label>Purchaser:</label>
                     <select
                       value={formData.user}
                       onChange={(e) => setFormData({ ...formData, user: e.target.value })}
                       required
                     >
-                      <option value="">Select User</option>
-                      {users.map(user => (
+                      <option value="">Select Purchaser</option>
+                      {users.filter(u => u.roleid === 'purchaser').map(user => (
                         <option key={user._id} value={user._id}>{user.firstname} {user.lastname}</option>
                       ))}
                     </select>
@@ -615,6 +620,24 @@ const Transactions = ({ organizationFilter, currentUser }) => {
                       readOnly
                       className="readonly-input"
                     />
+                  </div>
+                )}
+              </div>
+
+              <div className="form-row">
+                {currentUser && ['admin', 'manager', 'salesman'].includes(currentUser.role) && (
+                  <div className="form-group">
+                    <label>Machine:</label>
+                    <select
+                      value={formData.machine || ''}
+                      onChange={(e) => setFormData({ ...formData, machine: e.target.value })}
+                      required
+                    >
+                      <option value="">Select Machine</option>
+                      {machines.map(m => (
+                        <option key={m._id} value={m._id}>{m.name}</option>
+                      ))}
+                    </select>
                   </div>
                 )}
               </div>
@@ -934,28 +957,18 @@ const Transactions = ({ organizationFilter, currentUser }) => {
                   <td><span className={`status-badge ${transaction.status || 'pending'}`}>{transaction.status || 'pending'}</span></td>
                   <td>
                     <div style={{ display: 'flex', gap: '5px' }}>
-                      {currentUser && currentUser.role === 'salesman' && !transaction.assignedTo && (
-                        <button className="btn-primary" onClick={() => handleAssign(transaction._id)}>
-                          <i className="fas fa-hand-pointer"></i> Assign
-                        </button>
-                      )}
-                      {currentUser && currentUser.role === 'salesman' && transaction.assignedTo && transaction.assignedTo._id === currentUser.id && (
-                        <button className="btn-danger" onClick={() => handleReject(transaction._id)}>
-                          <i className="fas fa-ban"></i> Reject
-                        </button>
-                      )}
                       {currentUser && ['admin', 'manager'].includes(currentUser.role) && transaction.assignedTo && transaction.status === 'pending' && (
                         <button className="btn-approve-sm" onClick={() => handleApprove(transaction._id)} title="Approve">
                           <i className="fas fa-check-circle"></i>
                         </button>
                       )}
-                      {((['admin', 'manager', 'purchaser'].includes(currentUser?.role) && transaction.status !== 'completed') ||
+                      {((['admin', 'manager', 'salesman'].includes(currentUser?.role) && transaction.status !== 'completed') ||
                         (currentUser?.role === 'admin' && transaction.status === 'completed')) && (
                           <button className="btn-edit-sm" onClick={() => handleEdit(transaction)} title="Edit">
                             <i className="fas fa-edit"></i>
                           </button>
                         )}
-                      {((['admin', 'manager', 'purchaser'].includes(currentUser?.role) && transaction.status !== 'completed') ||
+                      {((['admin', 'manager', 'salesman'].includes(currentUser?.role) && transaction.status !== 'completed') ||
                         (currentUser?.role === 'admin' && transaction.status === 'completed')) && (
                           <button className="btn-delete-sm" onClick={() => handleDelete(transaction._id)} title="Delete">
                             <i className="fas fa-trash-alt"></i>
